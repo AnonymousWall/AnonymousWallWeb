@@ -91,14 +91,12 @@ npm run build
 
 # Upload to OCI Object Storage
 oci os object bulk-upload --bucket-name your-bucket-name --src-dir dist/ --overwrite
-
-# Invalidate CDN cache (if using OCI CDN)
-# Note: Replace with appropriate CDN service command based on your OCI CDN configuration
 ```
 
 **Object Storage Configuration:**
 - Create a bucket in your OCI compartment
-- Enable public access and set bucket visibility to public
+- Enable public access to the bucket
+- Set bucket visibility to public
 - Set index.html as the default object
 
 **OCI CDN Configuration:**
@@ -106,6 +104,7 @@ oci os object bulk-upload --bucket-name your-bucket-name --src-dir dist/ --overw
 - Configure origin settings with your bucket URL
 - Set custom error responses (404 → /index.html)
 - Add SSL certificate via OCI Certificates service
+- For cache invalidation, use OCI Console or refer to OCI CDN documentation for your specific CDN service
 
 ### 4. GitHub Pages
 
