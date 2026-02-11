@@ -29,7 +29,6 @@ import {
 import { useUsers, useUser, useBlockUser, useUnblockUser } from '../hooks/useUsers';
 import { PAGINATION_CONFIG, SUCCESS_MESSAGES } from '../config/constants';
 import type { User } from '../types';
-import { format } from 'date-fns';
 
 export const UsersPage: React.FC = () => {
   const [page, setPage] = useState(0);
@@ -106,7 +105,9 @@ export const UsersPage: React.FC = () => {
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          {error.message}
+          <strong>Error loading users:</strong> {error.message}
+          <br />
+          <small>Check browser console for more details</small>
         </Alert>
       )}
 
@@ -141,7 +142,15 @@ export const UsersPage: React.FC = () => {
               ) : !data || data.data.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} align="center">
-                    No users found
+                    {!data ? (
+                      <>
+                        No data received from server
+                        <br />
+                        <small>Check browser console for details</small>
+                      </>
+                    ) : (
+                      'No users found'
+                    )}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -152,12 +161,12 @@ export const UsersPage: React.FC = () => {
                     <TableCell>{user.schoolDomain}</TableCell>
                     <TableCell>
                       <Chip
-                        label={user.role}
+                        label={user.role || 'USER'}
                         size="small"
                         color={
-                          user.role === 'ADMIN'
+                          (user.role || 'USER') === 'ADMIN'
                             ? 'error'
-                            : user.role === 'MODERATOR'
+                            : (user.role || 'USER') === 'MODERATOR'
                               ? 'warning'
                               : 'default'
                         }
@@ -177,7 +186,7 @@ export const UsersPage: React.FC = () => {
                         '-'
                       )}
                     </TableCell>
-                    <TableCell>{format(new Date(user.createdAt), 'MMM dd, yyyy')}</TableCell>
+                    <TableCell>{user.createdAt}</TableCell>
                     <TableCell align="right">
                       <Tooltip title="View Details">
                         <IconButton size="small" onClick={() => handleShowDetails(user)}>
@@ -241,7 +250,7 @@ export const UsersPage: React.FC = () => {
                 <strong>School Domain:</strong> {userDetails.schoolDomain}
               </Typography>
               <Typography variant="body2" gutterBottom>
-                <strong>Role:</strong> {userDetails.role}
+                <strong>Role:</strong> {userDetails.role || 'USER'}
               </Typography>
               <Typography variant="body2" gutterBottom>
                 <strong>Status:</strong> {userDetails.blocked ? 'Blocked' : 'Active'}
@@ -256,8 +265,7 @@ export const UsersPage: React.FC = () => {
                 <strong>Report Count:</strong> {userDetails.reportCount}
               </Typography>
               <Typography variant="body2" gutterBottom>
-                <strong>Created At:</strong>{' '}
-                {format(new Date(userDetails.createdAt), 'MMM dd, yyyy HH:mm')}
+                <strong>Created At:</strong> {userDetails.createdAt}
               </Typography>
             </Box>
           )}

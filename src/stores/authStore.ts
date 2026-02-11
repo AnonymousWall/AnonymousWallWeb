@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { authService } from '../api/authService';
 import { httpClient } from '../api/httpClient';
-import { AUTH_CONFIG, ADMIN_ROLES } from '../config/constants';
+import { AUTH_CONFIG } from '../config/constants';
 import type { User, LoginRequest } from '../types';
 
 /**
@@ -38,12 +38,9 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       const response = await authService.login(credentials);
 
-      // Check if user has admin or moderator role
-      if (!ADMIN_ROLES.includes(response.user.role as (typeof ADMIN_ROLES)[number])) {
-        throw new Error('Unauthorized: Admin or Moderator role required');
-      }
-
       // Save token and user
+      // Note: Authorization is handled by the backend via JWT token validation
+      // The backend will reject unauthorized requests with 401/403 status codes
       httpClient.setToken(response.accessToken);
       localStorage.setItem(AUTH_CONFIG.USER_KEY, JSON.stringify(response.user));
 

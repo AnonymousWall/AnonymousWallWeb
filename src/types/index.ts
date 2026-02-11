@@ -4,7 +4,7 @@ export interface User {
   email: string;
   profileName: string;
   schoolDomain: string;
-  role: 'USER' | 'ADMIN' | 'MODERATOR';
+  role?: 'USER' | 'ADMIN' | 'MODERATOR'; // Optional: Only populated when fetching user lists, not included in login response
   blocked: boolean;
   verified: boolean;
   passwordSet: boolean;
