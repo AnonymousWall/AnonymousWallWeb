@@ -286,6 +286,10 @@ The project enforces code quality through:
 4. Push to the branch
 5. Open a Pull Request
 
+## Troubleshooting
+
+Having issues with login or CORS errors? See [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) for common solutions.
+
 ## License
 
 This project is part of the Anonymous Wall platform.
