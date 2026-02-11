@@ -17,12 +17,20 @@ export const postService = {
     userId?: string,
     hidden?: boolean
   ): Promise<PaginatedResponse<Post>> {
-    return httpClient.get<PaginatedResponse<Post>>(API_ENDPOINTS.ADMIN.POSTS, {
+    const params: Record<string, unknown> = {
       page,
       limit,
-      userId,
-      hidden,
-    });
+    };
+
+    // Only include optional params if they are defined
+    if (userId !== undefined) {
+      params.userId = userId;
+    }
+    if (hidden !== undefined) {
+      params.hidden = hidden;
+    }
+
+    return httpClient.get<PaginatedResponse<Post>>(API_ENDPOINTS.ADMIN.POSTS, params);
   },
 
   /**
