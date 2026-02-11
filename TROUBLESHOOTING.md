@@ -58,11 +58,11 @@ The backend must return a response matching this structure:
     "reportCount": number,
     "createdAt": "string"
   },
-  "accessToken": "string (JWT token containing user role)"
+  "accessToken": "string (JWT token)"
 }
 ```
 
-**Note:** The user's role is extracted from the JWT token, not from the response body. The JWT payload should include a `role` field with one of: `ADMIN`, `MODERATOR`, or `USER`.
+**Note:** The user's role is not included in the response body. Authorization is handled by the backend using the JWT token. The backend will reject unauthorized requests with 401 or 403 status codes.
 
 #### 5. Check browser console
 
@@ -72,41 +72,9 @@ Look for errors related to:
 
 - Response parsing errors
 - Missing fields in response
-- Role verification errors (role is extracted from JWT token and must be ADMIN or MODERATOR)
-- JWT decoding errors
+- Network errors (401/403 for unauthorized access)
 
 ### Common Error Messages
-
-#### "Unauthorized: Admin or Moderator role required"
-
-**Cause:** The logged-in user doesn't have ADMIN or MODERATOR role in their JWT token.
-
-**Solution:** The backend must include the correct role in the JWT token payload. Verify the JWT token contains a `role` field with value `ADMIN` or `MODERATOR`.
-
-You can decode the JWT token at [jwt.io](https://jwt.io) to verify its contents.
-
-#### "Unable to extract role from token"
-
-**Cause:** The JWT token doesn't contain a `role` field in its payload.
-
-**Solution:** Ensure the backend includes the user's role in the JWT token when generating it:
-
-```javascript
-// Example JWT payload (backend)
-{
-  "sub": "user-id",
-  "email": "admin@nyu.edu",
-  "role": "ADMIN",  // Must be present
-  "exp": 1234567890,
-  "iat": 1234567890
-}
-```
-
-If you need to update a user's role in the database:
-
-```sql
-UPDATE users SET role = 'ADMIN' WHERE email = 'your-email@example.com';
-```
 
 #### "Network error. Please check your connection."
 

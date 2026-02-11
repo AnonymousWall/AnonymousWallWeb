@@ -4,7 +4,7 @@ export interface User {
   email: string;
   profileName: string;
   schoolDomain: string;
-  role: 'USER' | 'ADMIN' | 'MODERATOR';
+  role?: 'USER' | 'ADMIN' | 'MODERATOR'; // Optional: Not included in login response, extracted from JWT by backend
   blocked: boolean;
   verified: boolean;
   passwordSet: boolean;
@@ -81,21 +81,8 @@ export interface LoginRequest {
   password: string;
 }
 
-// User data returned by backend (role is in JWT, not in response body).
-export interface LoginUserData {
-  id: string;
-  email: string;
-  profileName: string;
-  schoolDomain: string;
-  blocked: boolean;
-  verified: boolean;
-  passwordSet: boolean;
-  reportCount: number;
-  createdAt: string;
-}
-
 export interface LoginResponse {
-  user: LoginUserData;
+  user: User;
   accessToken: string;
 }
 

@@ -1,9 +1,8 @@
 import { create } from 'zustand';
 import { authService } from '../api/authService';
 import { httpClient } from '../api/httpClient';
-import { AUTH_CONFIG, ADMIN_ROLES } from '../config/constants';
+import { AUTH_CONFIG } from '../config/constants';
 import type { User, LoginRequest } from '../types';
-import { extractRoleFromJWT } from '../utils/jwt';
 
 /**
  * Auth Store
@@ -39,35 +38,14 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       const response = await authService.login(credentials);
 
-      // Extract role from JWT token
-      const role = extractRoleFromJWT(response.accessToken);
-      if (!role) {
-        throw new Error('Unable to extract role from token');
-      }
-
-      // Validate role is one of the expected values
-      const validRoles: string[] = ['USER', 'ADMIN', 'MODERATOR'];
-      if (!validRoles.includes(role)) {
-        throw new Error(`Invalid role in token: ${role}`);
-      }
-
-      // Check if user has admin or moderator role
-      if (!ADMIN_ROLES.includes(role as (typeof ADMIN_ROLES)[number])) {
-        throw new Error('Unauthorized: Admin or Moderator role required');
-      }
-
-      // Add role to user object (backend doesn't include it in response)
-      const userWithRole: User = {
-        ...response.user,
-        role: role as 'USER' | 'ADMIN' | 'MODERATOR',
-      };
-
       // Save token and user
+      // Note: Authorization is handled by the backend via JWT token validation
+      // The backend will reject unauthorized requests with 401/403 status codes
       httpClient.setToken(response.accessToken);
-      localStorage.setItem(AUTH_CONFIG.USER_KEY, JSON.stringify(userWithRole));
+      localStorage.setItem(AUTH_CONFIG.USER_KEY, JSON.stringify(response.user));
 
       set({
-        user: userWithRole,
+        user: response.user,
         isAuthenticated: true,
         isLoading: false,
         error: null,
