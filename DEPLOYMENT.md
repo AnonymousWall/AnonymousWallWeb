@@ -100,11 +100,14 @@ oci os object bulk-upload --bucket-name your-bucket-name --src-dir dist/ --overw
 - Set index.html as the default object
 
 **OCI CDN Configuration:**
-- Create a CDN distribution pointing to Object Storage bucket
-- Configure origin settings with your bucket URL
+OCI offers Content Delivery Network capabilities through multiple services:
+- **OCI Edge Services**: Use OCI Console to create a CDN distribution
+- Configure origin settings with your Object Storage bucket URL
 - Set custom error responses (404 → /index.html)
 - Add SSL certificate via OCI Certificates service
-- For cache invalidation, use OCI Console or refer to OCI CDN documentation for your specific CDN service
+
+**Cache Invalidation:**
+Use the OCI Console to purge cache for your CDN distribution, or configure automatic cache invalidation policies based on your deployment workflow.
 
 ### 4. GitHub Pages
 
