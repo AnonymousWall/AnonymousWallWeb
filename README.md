@@ -85,27 +85,35 @@ cd AnonymousWallWeb
 npm install
 ```
 
-3. Configure environment variables:
+3. Configure environment variables (optional):
 
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env` file:
+**Development Mode (Default):**
+The application uses Vite's proxy feature to avoid CORS issues. No environment configuration is needed - requests to `/api` are automatically proxied to `http://localhost:8080`.
+
+**Production or Direct API Access:**
+Edit `.env` file to point directly to the API:
 
 ```env
-VITE_API_BASE_URL=http://localhost:8080/api/v1
+VITE_API_BASE_URL=https://your-api-domain.com/api/v1
 ```
 
 ## Development
 
-Start the development server:
+1. Make sure the backend API is running on `http://localhost:8080` (see [Anonymous Wall Backend](https://github.com/AnonymousWall/AnonymousWall))
+
+2. Start the development server:
 
 ```bash
 npm run dev
 ```
 
 The application will be available at `http://localhost:5173`
+
+**Note:** The Vite development server is configured with a proxy to forward API requests from `/api` to `http://localhost:8080/api`, eliminating CORS issues during development.
 
 ## Building for Production
 
@@ -123,11 +131,19 @@ npm run preview
 
 ## API Configuration
 
-The dashboard connects to the Anonymous Wall API. Configure the API base URL in the `.env` file:
+The dashboard connects to the Anonymous Wall API.
+
+**Development Mode:**
+The Vite development server includes a built-in proxy that forwards requests from `/api` to `http://localhost:8080/api`. This eliminates CORS issues during development. No additional configuration is required.
+
+**Production or Custom API URL:**
+Create a `.env` file and configure the API base URL:
 
 ```env
 VITE_API_BASE_URL=https://your-api-domain.com/api/v1
 ```
+
+For more details, see the `.env.example` file.
 
 ## Admin Access
 
