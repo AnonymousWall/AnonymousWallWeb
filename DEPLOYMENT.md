@@ -89,8 +89,11 @@ vercel --prod
 # Build the application
 npm run build
 
-# Upload to OCI Object Storage
+# Upload to OCI Object Storage (overwrites existing files)
 oci os object bulk-upload --bucket-name your-bucket-name --src-dir dist/ --overwrite
+
+# Note: To remove stale objects from previous deployments, you may need to
+# manually delete objects or use additional OCI CLI commands
 ```
 
 **Object Storage Configuration:**
@@ -107,7 +110,10 @@ OCI offers Content Delivery Network capabilities through multiple services:
 - Add SSL certificate via OCI Certificates service
 
 **Cache Invalidation:**
-Use the OCI Console to purge cache for your CDN distribution, or configure automatic cache invalidation policies based on your deployment workflow.
+After deploying new content, you can invalidate the CDN cache through:
+- **OCI Console**: Navigate to Edge Services → Your Distribution → Purge Cache
+- Set purge type to "All" or specify paths for selective invalidation
+- Alternatively, configure automatic cache invalidation policies in your deployment workflow
 
 ### 4. GitHub Pages
 
