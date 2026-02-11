@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -19,8 +19,9 @@ import {
   Tabs,
   Tab,
 } from '@mui/material';
-import { apiService } from '../services/api';
-import type { PostReport, CommentReport, ReportsResponse } from '../types';
+import { useReports } from '../hooks/useReports';
+import { PAGINATION_CONFIG } from '../config/constants';
+import type { PostReport, CommentReport } from '../types';
 import { format } from 'date-fns';
 
 interface TabPanelProps {
@@ -46,33 +47,14 @@ function TabPanel(props: TabPanelProps) {
 }
 
 export const ReportsPage: React.FC = () => {
-  const [reports, setReports] = useState<ReportsResponse | null>(null);
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(20);
-  const [total, setTotal] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [rowsPerPage, setRowsPerPage] = useState<number>(PAGINATION_CONFIG.DEFAULT_PAGE_SIZE);
   const [tabValue, setTabValue] = useState(0);
   const [reportType, setReportType] = useState<'all' | 'post' | 'comment'>('all');
 
-  useEffect(() => {
-    loadReports();
-  }, [page, rowsPerPage, reportType]);
-
-  const loadReports = async () => {
-    setIsLoading(true);
-    setError('');
-    try {
-      const type = reportType === 'all' ? undefined : reportType;
-      const response = await apiService.getReports(page + 1, rowsPerPage, type);
-      setReports(response);
-      setTotal(response.pagination.total);
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to load reports');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Fetch reports with pagination and filter
+  const type = reportType === 'all' ? undefined : reportType;
+  const { data: reports, isLoading, error } = useReports(page + 1, rowsPerPage, type);
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
@@ -116,8 +98,8 @@ export const ReportsPage: React.FC = () => {
       </Box>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
-          {error}
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error.message}
         </Alert>
       )}
 
@@ -147,14 +129,14 @@ export const ReportsPage: React.FC = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {reports?.postReports.length === 0 ? (
+                    {!reports || reports.postReports.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={4} align="center">
                           No post reports found
                         </TableCell>
                       </TableRow>
                     ) : (
-                      reports?.postReports.map((report: PostReport) => (
+                      reports.postReports.map((report: PostReport) => (
                         <TableRow key={report.id} hover>
                           <TableCell>
                             <Typography variant="body2" noWrap sx={{ maxWidth: 200 }}>
@@ -194,14 +176,14 @@ export const ReportsPage: React.FC = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {reports?.commentReports.length === 0 ? (
+                    {!reports || reports.commentReports.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={4} align="center">
                           No comment reports found
                         </TableCell>
                       </TableRow>
                     ) : (
-                      reports?.commentReports.map((report: CommentReport) => (
+                      reports.commentReports.map((report: CommentReport) => (
                         <TableRow key={report.id} hover>
                           <TableCell>
                             <Typography variant="body2" noWrap sx={{ maxWidth: 200 }}>
@@ -229,15 +211,17 @@ export const ReportsPage: React.FC = () => {
               </TableContainer>
             </TabPanel>
 
-            <TablePagination
-              rowsPerPageOptions={[10, 20, 50, 100]}
-              component="div"
-              count={total}
-              rowsPerPage={rowsPerPage}
-              page={page}
-              onPageChange={handleChangePage}
-              onRowsPerPageChange={handleChangeRowsPerPage}
-            />
+            {reports && (
+              <TablePagination
+                rowsPerPageOptions={PAGINATION_CONFIG.PAGE_SIZE_OPTIONS}
+                component="div"
+                count={reports.pagination.total}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+              />
+            )}
           </>
         )}
       </Paper>

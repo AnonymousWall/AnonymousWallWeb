@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -21,42 +21,25 @@ import {
   Alert,
   Tooltip,
 } from '@mui/material';
-import {
-  Delete as DeleteIcon,
-  Visibility as VisibilityIcon,
-} from '@mui/icons-material';
-import { apiService } from '../services/api';
+import { Delete as DeleteIcon, Visibility as VisibilityIcon } from '@mui/icons-material';
+import { useComments, useDeleteComment } from '../hooks/useComments';
+import { PAGINATION_CONFIG, SUCCESS_MESSAGES } from '../config/constants';
 import type { Comment } from '../types';
 import { format } from 'date-fns';
 
 export const CommentsPage: React.FC = () => {
-  const [comments, setComments] = useState<Comment[]>([]);
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(20);
-  const [total, setTotal] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [rowsPerPage, setRowsPerPage] = useState<number>(PAGINATION_CONFIG.DEFAULT_PAGE_SIZE);
   const [selectedComment, setSelectedComment] = useState<Comment | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
-  useEffect(() => {
-    loadComments();
-  }, [page, rowsPerPage]);
+  // Fetch comments with pagination
+  const { data, isLoading, error } = useComments(page + 1, rowsPerPage);
 
-  const loadComments = async () => {
-    setIsLoading(true);
-    setError('');
-    try {
-      const response = await apiService.getComments(page + 1, rowsPerPage);
-      setComments(response.data);
-      setTotal(response.pagination.total);
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to load comments');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Delete comment mutation
+  const deleteCommentMutation = useDeleteComment();
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
@@ -81,11 +64,13 @@ export const CommentsPage: React.FC = () => {
     if (!selectedComment) return;
 
     try {
-      await apiService.deleteComment(selectedComment.id);
+      await deleteCommentMutation.mutateAsync(selectedComment.id);
+      setSuccessMessage(SUCCESS_MESSAGES.COMMENT_DELETED);
       setConfirmOpen(false);
-      loadComments();
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to delete comment');
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (err) {
+      // Error is handled by mutation
+      console.error('Delete failed:', err);
     }
   };
 
@@ -101,8 +86,14 @@ export const CommentsPage: React.FC = () => {
       </Box>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
-          {error}
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error.message}
+        </Alert>
+      )}
+
+      {successMessage && (
+        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMessage('')}>
+          {successMessage}
         </Alert>
       )}
 
@@ -126,14 +117,14 @@ export const CommentsPage: React.FC = () => {
                     <CircularProgress />
                   </TableCell>
                 </TableRow>
-              ) : comments.length === 0 ? (
+              ) : !data || data.data.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} align="center">
                     No comments found
                   </TableCell>
                 </TableRow>
               ) : (
-                comments.map((comment) => (
+                data.data.map((comment) => (
                   <TableRow key={comment.id} hover>
                     <TableCell>
                       <Typography variant="body2" noWrap sx={{ maxWidth: 300 }}>
@@ -178,15 +169,17 @@ export const CommentsPage: React.FC = () => {
             </TableBody>
           </Table>
         </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[10, 20, 50, 100]}
-          component="div"
-          count={total}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
+        {data && (
+          <TablePagination
+            rowsPerPageOptions={PAGINATION_CONFIG.PAGE_SIZE_OPTIONS}
+            component="div"
+            count={data.pagination.total}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        )}
       </Paper>
 
       {/* Comment Details Dialog */}
@@ -233,17 +226,20 @@ export const CommentsPage: React.FC = () => {
       <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
         <DialogTitle>Confirm Delete Comment</DialogTitle>
         <DialogContent>
-          <Typography>
-            Are you sure you want to delete this comment?
-          </Typography>
+          <Typography>Are you sure you want to delete this comment?</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
             This will soft-delete the comment and it will no longer be visible to users.
           </Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setConfirmOpen(false)}>Cancel</Button>
-          <Button onClick={confirmDelete} color="error" variant="contained">
-            Delete
+          <Button
+            onClick={confirmDelete}
+            color="error"
+            variant="contained"
+            disabled={deleteCommentMutation.isPending}
+          >
+            {deleteCommentMutation.isPending ? 'Deleting...' : 'Delete'}
           </Button>
         </DialogActions>
       </Dialog>

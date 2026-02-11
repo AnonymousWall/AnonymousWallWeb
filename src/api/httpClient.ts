@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
+import axios, { type AxiosInstance, AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import { API_CONFIG, AUTH_CONFIG, ERROR_MESSAGES } from '../config/constants';
 
 /**
