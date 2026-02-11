@@ -28,7 +28,8 @@ import {
   Report as ReportIcon,
   ExitToApp as LogoutIcon,
 } from '@mui/icons-material';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuthStore } from '../stores/authStore';
+import { ROUTES } from '../config/constants';
 
 const drawerWidth = 240;
 
@@ -39,17 +40,17 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { label: 'Dashboard', path: '/', icon: <DashboardIcon /> },
-  { label: 'Users', path: '/users', icon: <PeopleIcon /> },
-  { label: 'Posts', path: '/posts', icon: <ArticleIcon /> },
-  { label: 'Comments', path: '/comments', icon: <CommentIcon /> },
-  { label: 'Reports', path: '/reports', icon: <ReportIcon /> },
+  { label: 'Dashboard', path: ROUTES.DASHBOARD, icon: <DashboardIcon /> },
+  { label: 'Users', path: ROUTES.USERS, icon: <PeopleIcon /> },
+  { label: 'Posts', path: ROUTES.POSTS, icon: <ArticleIcon /> },
+  { label: 'Comments', path: ROUTES.COMMENTS, icon: <CommentIcon /> },
+  { label: 'Reports', path: ROUTES.REPORTS, icon: <ReportIcon /> },
 ];
 
 export const Layout: React.FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const { user, logout } = useAuth();
+  const { user, logout } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
@@ -70,7 +71,7 @@ export const Layout: React.FC = () => {
   const handleLogout = () => {
     handleProfileMenuClose();
     logout();
-    navigate('/login');
+    navigate(ROUTES.LOGIN);
   };
 
   const drawer = (
@@ -159,9 +160,7 @@ export const Layout: React.FC = () => {
         }}
       >
         <MenuItem disabled>
-          <Typography variant="body2">
-            Role: {user?.role}
-          </Typography>
+          <Typography variant="body2">Role: {user?.role}</Typography>
         </MenuItem>
         <Divider />
         <MenuItem onClick={handleLogout}>
@@ -171,10 +170,7 @@ export const Layout: React.FC = () => {
           <ListItemText>Logout</ListItemText>
         </MenuItem>
       </Menu>
-      <Box
-        component="nav"
-        sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
-      >
+      <Box component="nav" sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}>
         <Drawer
           variant="temporary"
           open={mobileOpen}

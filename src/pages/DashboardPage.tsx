@@ -1,12 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  CircularProgress,
-  Alert,
-} from '@mui/material';
+import React from 'react';
+import { Box, Card, CardContent, Typography, CircularProgress, Alert } from '@mui/material';
 import {
   People as PeopleIcon,
   Article as ArticleIcon,
@@ -15,7 +8,7 @@ import {
   Block as BlockIcon,
   VisibilityOff as VisibilityOffIcon,
 } from '@mui/icons-material';
-import { apiService } from '../services/api';
+import { useDashboardStats } from '../hooks/useDashboardStats';
 
 interface StatCardProps {
   title: string;
@@ -47,9 +40,7 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color }) => {
               justifyContent: 'center',
             }}
           >
-            <Box sx={{ fontSize: 40, color }}>
-              {icon}
-            </Box>
+            <Box sx={{ fontSize: 40, color }}>{icon}</Box>
           </Box>
         </Box>
       </CardContent>
@@ -58,61 +49,13 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color }) => {
 };
 
 export const DashboardPage: React.FC = () => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [stats, setStats] = useState({
-    totalUsers: 0,
-    totalPosts: 0,
-    totalComments: 0,
-    totalReports: 0,
-    blockedUsers: 0,
-    hiddenPosts: 0,
-  });
-
-  useEffect(() => {
-    loadStats();
-  }, []);
-
-  const loadStats = async () => {
-    setIsLoading(true);
-    setError('');
-    try {
-      // Fetch data from multiple endpoints
-      const [usersData, postsData, commentsData, reportsData] = await Promise.all([
-        apiService.getUsers(1, 1),
-        apiService.getPosts(1, 1),
-        apiService.getComments(1, 1),
-        apiService.getReports(1, 1),
-      ]);
-
-      // Get additional stats for blocked users and hidden posts
-      // Note: This fetches a sample to estimate counts. For production,
-      // consider adding dedicated statistics endpoints in the backend API
-      const [blockedUsersData, hiddenPostsData] = await Promise.all([
-        apiService.getUsers(1, 100), // Fetch first page to estimate blocked
-        apiService.getPosts(1, 100, undefined, true), // Fetch hidden posts
-      ]);
-
-      const blockedCount = blockedUsersData.data.filter(u => u.blocked).length;
-
-      setStats({
-        totalUsers: usersData.pagination.total,
-        totalPosts: postsData.pagination.total,
-        totalComments: commentsData.pagination.total,
-        totalReports: reportsData.pagination.total,
-        blockedUsers: blockedCount,
-        hiddenPosts: hiddenPostsData.pagination.total,
-      });
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to load statistics');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { data: stats, isLoading, error } = useDashboardStats();
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+      <Box
+        sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}
+      >
         <CircularProgress />
       </Box>
     );
@@ -121,9 +64,13 @@ export const DashboardPage: React.FC = () => {
   if (error) {
     return (
       <Alert severity="error" sx={{ mb: 2 }}>
-        {error}
+        {error.message}
       </Alert>
     );
+  }
+
+  if (!stats) {
+    return null;
   }
 
   return (
@@ -135,7 +82,13 @@ export const DashboardPage: React.FC = () => {
         Overview of system statistics and metrics
       </Typography>
 
-      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 3 }}>
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gap: 3,
+        }}
+      >
         <StatCard
           title="Total Users"
           value={stats.totalUsers}

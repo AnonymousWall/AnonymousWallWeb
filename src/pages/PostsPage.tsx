@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -25,44 +25,27 @@ import {
   Select,
   MenuItem,
 } from '@mui/material';
-import {
-  Delete as DeleteIcon,
-  Visibility as VisibilityIcon,
-} from '@mui/icons-material';
-import { apiService } from '../services/api';
+import { Delete as DeleteIcon, Visibility as VisibilityIcon } from '@mui/icons-material';
+import { usePosts, useDeletePost } from '../hooks/usePosts';
+import { PAGINATION_CONFIG, SUCCESS_MESSAGES } from '../config/constants';
 import type { Post } from '../types';
 import { format } from 'date-fns';
 
 export const PostsPage: React.FC = () => {
-  const [posts, setPosts] = useState<Post[]>([]);
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(20);
-  const [total, setTotal] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [rowsPerPage, setRowsPerPage] = useState<number>(PAGINATION_CONFIG.DEFAULT_PAGE_SIZE);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [hiddenFilter, setHiddenFilter] = useState<'all' | 'visible' | 'hidden'>('all');
+  const [successMessage, setSuccessMessage] = useState('');
 
-  useEffect(() => {
-    loadPosts();
-  }, [page, rowsPerPage, hiddenFilter]);
+  // Fetch posts with pagination and filter
+  const hidden = hiddenFilter === 'all' ? undefined : hiddenFilter === 'hidden';
+  const { data, isLoading, error } = usePosts(page + 1, rowsPerPage, undefined, hidden);
 
-  const loadPosts = async () => {
-    setIsLoading(true);
-    setError('');
-    try {
-      const hidden = hiddenFilter === 'all' ? undefined : hiddenFilter === 'hidden';
-      const response = await apiService.getPosts(page + 1, rowsPerPage, undefined, hidden);
-      setPosts(response.data);
-      setTotal(response.pagination.total);
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to load posts');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Delete post mutation
+  const deletePostMutation = useDeletePost();
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
@@ -87,11 +70,13 @@ export const PostsPage: React.FC = () => {
     if (!selectedPost) return;
 
     try {
-      await apiService.deletePost(selectedPost.id);
+      await deletePostMutation.mutateAsync(selectedPost.id);
+      setSuccessMessage(SUCCESS_MESSAGES.POST_DELETED);
       setConfirmOpen(false);
-      loadPosts();
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to delete post');
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (err) {
+      // Error is handled by mutation
+      console.error('Delete failed:', err);
     }
   };
 
@@ -121,8 +106,14 @@ export const PostsPage: React.FC = () => {
       </Box>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
-          {error}
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error.message}
+        </Alert>
+      )}
+
+      {successMessage && (
+        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMessage('')}>
+          {successMessage}
         </Alert>
       )}
 
@@ -149,14 +140,14 @@ export const PostsPage: React.FC = () => {
                     <CircularProgress />
                   </TableCell>
                 </TableRow>
-              ) : posts.length === 0 ? (
+              ) : !data || data.data.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={9} align="center">
                     No posts found
                   </TableCell>
                 </TableRow>
               ) : (
-                posts.map((post) => (
+                data.data.map((post) => (
                   <TableRow key={post.id} hover>
                     <TableCell>
                       <Typography variant="body2" noWrap sx={{ maxWidth: 200 }}>
@@ -206,15 +197,17 @@ export const PostsPage: React.FC = () => {
             </TableBody>
           </Table>
         </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[10, 20, 50, 100]}
-          component="div"
-          count={total}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
+        {data && (
+          <TablePagination
+            rowsPerPageOptions={PAGINATION_CONFIG.PAGE_SIZE_OPTIONS}
+            component="div"
+            count={data.pagination.total}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        )}
       </Paper>
 
       {/* Post Details Dialog */}
@@ -277,7 +270,8 @@ export const PostsPage: React.FC = () => {
         <DialogTitle>Confirm Delete Post</DialogTitle>
         <DialogContent>
           <Typography>
-            Are you sure you want to delete the post titled <strong>"{selectedPost?.title}"</strong>?
+            Are you sure you want to delete the post titled <strong>"{selectedPost?.title}"</strong>
+            ?
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
             This will soft-delete the post and it will no longer be visible to users.
@@ -285,8 +279,13 @@ export const PostsPage: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setConfirmOpen(false)}>Cancel</Button>
-          <Button onClick={confirmDelete} color="error" variant="contained">
-            Delete
+          <Button
+            onClick={confirmDelete}
+            color="error"
+            variant="contained"
+            disabled={deletePostMutation.isPending}
+          >
+            {deletePostMutation.isPending ? 'Deleting...' : 'Delete'}
           </Button>
         </DialogActions>
       </Dialog>
