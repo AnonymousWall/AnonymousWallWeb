@@ -29,26 +29,6 @@ import {
 import { useUsers, useUser, useBlockUser, useUnblockUser } from '../hooks/useUsers';
 import { PAGINATION_CONFIG, SUCCESS_MESSAGES } from '../config/constants';
 import type { User } from '../types';
-import { format } from 'date-fns';
-
-/**
- * Safely format a date string, returning a fallback if the date is invalid
- */
-const formatDate = (
-  dateString: string | undefined,
-  formatStr: string,
-  fallback = 'N/A'
-): string => {
-  if (!dateString) return fallback;
-  try {
-    const date = new Date(dateString);
-    // Check if date is valid
-    if (isNaN(date.getTime())) return fallback;
-    return format(date, formatStr);
-  } catch {
-    return fallback;
-  }
-};
 
 export const UsersPage: React.FC = () => {
   const [page, setPage] = useState(0);
@@ -62,11 +42,6 @@ export const UsersPage: React.FC = () => {
 
   // Fetch users with pagination
   const { data, isLoading, error } = useUsers(page + 1, rowsPerPage);
-
-  // Debug logging
-  React.useEffect(() => {
-    console.log('UsersPage state:', { isLoading, error: error?.message, data });
-  }, [isLoading, error, data]);
 
   // Fetch individual user details
   const { data: userDetails } = useUser(selectedUserId || '', !!selectedUserId);
@@ -211,7 +186,7 @@ export const UsersPage: React.FC = () => {
                         '-'
                       )}
                     </TableCell>
-                    <TableCell>{formatDate(user.createdAt, 'MMM dd, yyyy')}</TableCell>
+                    <TableCell>{user.createdAt}</TableCell>
                     <TableCell align="right">
                       <Tooltip title="View Details">
                         <IconButton size="small" onClick={() => handleShowDetails(user)}>
@@ -290,8 +265,7 @@ export const UsersPage: React.FC = () => {
                 <strong>Report Count:</strong> {userDetails.reportCount}
               </Typography>
               <Typography variant="body2" gutterBottom>
-                <strong>Created At:</strong>{' '}
-                {formatDate(userDetails.createdAt, 'MMM dd, yyyy HH:mm')}
+                <strong>Created At:</strong> {userDetails.createdAt}
               </Typography>
             </Box>
           )}
