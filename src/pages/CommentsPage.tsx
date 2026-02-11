@@ -25,7 +25,6 @@ import { Delete as DeleteIcon, Visibility as VisibilityIcon } from '@mui/icons-m
 import { useComments, useDeleteComment } from '../hooks/useComments';
 import { PAGINATION_CONFIG, SUCCESS_MESSAGES } from '../config/constants';
 import type { Comment } from '../types';
-import { format } from 'date-fns';
 
 export const CommentsPage: React.FC = () => {
   const [page, setPage] = useState(0);
@@ -144,7 +143,7 @@ export const CommentsPage: React.FC = () => {
                         color={comment.hidden ? 'error' : 'success'}
                       />
                     </TableCell>
-                    <TableCell>{format(new Date(comment.createdAt), 'MMM d, yyyy')}</TableCell>
+                    <TableCell>{comment.createdAt}</TableCell>
                     <TableCell align="right">
                       <Tooltip title="View Details">
                         <IconButton size="small" onClick={() => handleShowDetails(comment)}>
@@ -212,7 +211,7 @@ export const CommentsPage: React.FC = () => {
                 <strong>Status:</strong> {selectedComment.hidden ? 'Hidden' : 'Visible'}
               </Typography>
               <Typography variant="body2" gutterBottom>
-                <strong>Created:</strong> {format(new Date(selectedComment.createdAt), 'PPPpp')}
+                <strong>Created:</strong> {selectedComment.createdAt}
               </Typography>
             </Box>
           )}

@@ -29,7 +29,6 @@ import { Delete as DeleteIcon, Visibility as VisibilityIcon } from '@mui/icons-m
 import { usePosts, useDeletePost } from '../hooks/usePosts';
 import { PAGINATION_CONFIG, SUCCESS_MESSAGES } from '../config/constants';
 import type { Post } from '../types';
-import { format } from 'date-fns';
 
 export const PostsPage: React.FC = () => {
   const [page, setPage] = useState(0);
@@ -172,7 +171,7 @@ export const PostsPage: React.FC = () => {
                         color={post.hidden ? 'error' : 'success'}
                       />
                     </TableCell>
-                    <TableCell>{format(new Date(post.createdAt), 'MMM d, yyyy')}</TableCell>
+                    <TableCell>{post.createdAt}</TableCell>
                     <TableCell align="right">
                       <Tooltip title="View Details">
                         <IconButton size="small" onClick={() => handleShowDetails(post)}>
@@ -252,10 +251,10 @@ export const PostsPage: React.FC = () => {
                 <strong>Status:</strong> {selectedPost.hidden ? 'Hidden' : 'Visible'}
               </Typography>
               <Typography variant="body2" gutterBottom>
-                <strong>Created:</strong> {format(new Date(selectedPost.createdAt), 'PPPpp')}
+                <strong>Created:</strong> {selectedPost.createdAt}
               </Typography>
               <Typography variant="body2" gutterBottom>
-                <strong>Updated:</strong> {format(new Date(selectedPost.updatedAt), 'PPPpp')}
+                <strong>Updated:</strong> {selectedPost.updatedAt}
               </Typography>
             </Box>
           )}
