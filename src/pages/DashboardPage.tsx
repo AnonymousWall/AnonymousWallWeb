@@ -86,8 +86,10 @@ export const DashboardPage: React.FC = () => {
       ]);
 
       // Get additional stats for blocked users and hidden posts
+      // Note: This fetches a sample to estimate counts. For production,
+      // consider adding dedicated statistics endpoints in the backend API
       const [blockedUsersData, hiddenPostsData] = await Promise.all([
-        apiService.getUsers(1, 100), // Fetch first page to count blocked
+        apiService.getUsers(1, 100), // Fetch first page to estimate blocked
         apiService.getPosts(1, 100, undefined, true), // Fetch hidden posts
       ]);
 

@@ -104,7 +104,7 @@ export const ReportsPage: React.FC = () => {
             value={reportType}
             label="Filter"
             onChange={(e) => {
-              setReportType(e.target.value as any);
+              setReportType(e.target.value as 'all' | 'post' | 'comment');
               setPage(0);
             }}
           >

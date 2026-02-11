@@ -49,7 +49,7 @@ A production-grade, enterprise-level Admin Dashboard built with React for managi
 
 - **Framework**: React 19 with TypeScript
 - **Build Tool**: Vite 6
-- **UI Library**: Material-UI (MUI) v6
+- **UI Library**: Material-UI (MUI) v7
 - **Routing**: React Router v7
 - **HTTP Client**: Axios 1.13.5 (security patched)
 - **Date Formatting**: date-fns

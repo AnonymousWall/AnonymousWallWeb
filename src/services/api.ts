@@ -38,9 +38,9 @@ class ApiService {
       (response) => response,
       (error: AxiosError) => {
         if (error.response?.status === 401) {
-          // Token expired or invalid - redirect to login
+          // Token expired or invalid - clear token
+          // Navigation will be handled by the component using useNavigate
           this.clearToken();
-          window.location.href = '/login';
         }
         return Promise.reject(error);
       }

@@ -111,7 +111,7 @@ export const PostsPage: React.FC = () => {
           <Select
             value={hiddenFilter}
             label="Filter"
-            onChange={(e) => setHiddenFilter(e.target.value as any)}
+            onChange={(e) => setHiddenFilter(e.target.value as 'all' | 'visible' | 'hidden')}
           >
             <MenuItem value="all">All Posts</MenuItem>
             <MenuItem value="visible">Visible Only</MenuItem>
