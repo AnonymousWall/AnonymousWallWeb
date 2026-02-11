@@ -62,5 +62,5 @@ export function isJWTExpired(token: string): boolean {
   }
 
   // exp is in seconds, Date.now() is in milliseconds
-  return payload.exp * 1000 < Date.now();
+  return payload.exp * 1000 <= Date.now();
 }

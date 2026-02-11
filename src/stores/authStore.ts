@@ -45,6 +45,12 @@ export const useAuthStore = create<AuthState>((set) => ({
         throw new Error('Unable to extract role from token');
       }
 
+      // Validate role is one of the expected values
+      const validRoles: string[] = ['USER', 'ADMIN', 'MODERATOR'];
+      if (!validRoles.includes(role)) {
+        throw new Error(`Invalid role in token: ${role}`);
+      }
+
       // Check if user has admin or moderator role
       if (!ADMIN_ROLES.includes(role as (typeof ADMIN_ROLES)[number])) {
         throw new Error('Unauthorized: Admin or Moderator role required');

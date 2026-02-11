@@ -81,7 +81,7 @@ export interface LoginRequest {
   password: string;
 }
 
-// User data returned by backend (role is in JWT, not in response body)
+// User data returned by backend (role is in JWT, not in response body).
 export interface LoginUserData {
   id: string;
   email: string;
