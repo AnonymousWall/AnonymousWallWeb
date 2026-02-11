@@ -3,6 +3,7 @@ import { authService } from '../api/authService';
 import { httpClient } from '../api/httpClient';
 import { AUTH_CONFIG, ADMIN_ROLES } from '../config/constants';
 import type { User, LoginRequest } from '../types';
+import { extractRoleFromJWT } from '../utils/jwt';
 
 /**
  * Auth Store
@@ -38,17 +39,29 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       const response = await authService.login(credentials);
 
+      // Extract role from JWT token
+      const role = extractRoleFromJWT(response.accessToken);
+      if (!role) {
+        throw new Error('Unable to extract role from token');
+      }
+
       // Check if user has admin or moderator role
-      if (!ADMIN_ROLES.includes(response.user.role as (typeof ADMIN_ROLES)[number])) {
+      if (!ADMIN_ROLES.includes(role as (typeof ADMIN_ROLES)[number])) {
         throw new Error('Unauthorized: Admin or Moderator role required');
       }
 
+      // Add role to user object (backend doesn't include it in response)
+      const userWithRole: User = {
+        ...response.user,
+        role: role as 'USER' | 'ADMIN' | 'MODERATOR',
+      };
+
       // Save token and user
       httpClient.setToken(response.accessToken);
-      localStorage.setItem(AUTH_CONFIG.USER_KEY, JSON.stringify(response.user));
+      localStorage.setItem(AUTH_CONFIG.USER_KEY, JSON.stringify(userWithRole));
 
       set({
-        user: response.user,
+        user: userWithRole,
         isAuthenticated: true,
         isLoading: false,
         error: null,

@@ -81,8 +81,21 @@ export interface LoginRequest {
   password: string;
 }
 
+// User data returned by backend (role is in JWT, not in response body)
+export interface LoginUserData {
+  id: string;
+  email: string;
+  profileName: string;
+  schoolDomain: string;
+  blocked: boolean;
+  verified: boolean;
+  passwordSet: boolean;
+  reportCount: number;
+  createdAt: string;
+}
+
 export interface LoginResponse {
-  user: User;
+  user: LoginUserData;
   accessToken: string;
 }
 
