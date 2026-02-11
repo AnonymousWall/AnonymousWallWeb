@@ -83,28 +83,30 @@ vercel --prod
    - Output Directory: `dist`
 4. Add environment variables in Vercel dashboard
 
-### 3. AWS S3 + CloudFront
+### 3. OCI Object Storage + CDN
 
 ```bash
 # Build the application
 npm run build
 
-# Upload to S3
-aws s3 sync dist/ s3://your-bucket-name --delete
+# Upload to OCI Object Storage
+oci os object bulk-upload --bucket-name your-bucket-name --src-dir dist/ --overwrite
 
-# Invalidate CloudFront cache
-aws cloudfront create-invalidation --distribution-id YOUR_DIST_ID --paths "/*"
+# Invalidate CDN cache (if using OCI CDN)
+oci edge redirect-waas purge-cache --waas-policy-id YOUR_POLICY_ID
 ```
 
-**S3 Configuration:**
-- Enable static website hosting
-- Set index.html as index document
-- Configure bucket policy for public read access
+**Object Storage Configuration:**
+- Create a bucket in your OCI compartment
+- Enable public access to the bucket
+- Set index.html as the default object
+- Configure bucket visibility to public
 
-**CloudFront Configuration:**
-- Create distribution pointing to S3 bucket
-- Configure custom error responses (404 → /index.html)
-- Add SSL certificate
+**OCI CDN Configuration:**
+- Create a CDN distribution pointing to Object Storage bucket
+- Configure origin settings with your bucket URL
+- Set custom error responses (404 → /index.html)
+- Add SSL certificate via OCI Certificates service
 
 ### 4. GitHub Pages
 
@@ -354,7 +356,7 @@ jobs:
 Use your hosting platform's rollback features:
 - Netlify: Deploy history
 - Vercel: Deployments page
-- AWS: CloudFormation rollback
+- OCI: Resource Manager rollback
 
 ## Support
 
