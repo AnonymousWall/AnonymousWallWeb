@@ -152,7 +152,7 @@ export const UsersPage: React.FC = () => {
                     <TableCell>{user.schoolDomain}</TableCell>
                     <TableCell>
                       <Chip
-                        label={user.role}
+                        label={user.role || 'USER'}
                         size="small"
                         color={
                           user.role === 'ADMIN'
@@ -241,7 +241,7 @@ export const UsersPage: React.FC = () => {
                 <strong>School Domain:</strong> {userDetails.schoolDomain}
               </Typography>
               <Typography variant="body2" gutterBottom>
-                <strong>Role:</strong> {userDetails.role}
+                <strong>Role:</strong> {userDetails.role || 'USER'}
               </Typography>
               <Typography variant="body2" gutterBottom>
                 <strong>Status:</strong> {userDetails.blocked ? 'Blocked' : 'Active'}
