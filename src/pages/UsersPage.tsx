@@ -154,7 +154,13 @@ export const UsersPage: React.FC = () => {
                       <Chip
                         label={user.role}
                         size="small"
-                        color={user.role === 'ADMIN' ? 'error' : 'default'}
+                        color={
+                          user.role === 'ADMIN'
+                            ? 'error'
+                            : user.role === 'MODERATOR'
+                              ? 'warning'
+                              : 'default'
+                        }
                       />
                     </TableCell>
                     <TableCell>
@@ -263,7 +269,7 @@ export const UsersPage: React.FC = () => {
 
       {/* Confirm Action Dialog */}
       <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
-        <DialogTitle>Confirm Action</DialogTitle>
+        <DialogTitle>Confirm {actionType === 'block' ? 'Block' : 'Unblock'} User</DialogTitle>
         <DialogContent>
           <Typography>
             Are you sure you want to {actionType} user <strong>{selectedUser?.email}</strong>?
