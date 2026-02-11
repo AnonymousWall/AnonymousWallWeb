@@ -93,14 +93,13 @@ npm run build
 oci os object bulk-upload --bucket-name your-bucket-name --src-dir dist/ --overwrite
 
 # Invalidate CDN cache (if using OCI CDN)
-oci edge redirect-waas purge-cache --waas-policy-id YOUR_POLICY_ID
+# Note: Replace with appropriate CDN service command based on your OCI CDN configuration
 ```
 
 **Object Storage Configuration:**
 - Create a bucket in your OCI compartment
-- Enable public access to the bucket
+- Enable public access and set bucket visibility to public
 - Set index.html as the default object
-- Configure bucket visibility to public
 
 **OCI CDN Configuration:**
 - Create a CDN distribution pointing to Object Storage bucket
