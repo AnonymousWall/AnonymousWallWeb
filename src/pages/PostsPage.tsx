@@ -40,7 +40,7 @@ export const PostsPage: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState('');
 
   // Fetch posts with pagination and filter
-  const hidden = hiddenFilter === 'all' ? undefined : hiddenFilter === 'hidden';
+  const hidden = hiddenFilter === 'all' ? undefined : hiddenFilter !== 'hidden';
   const { data, isLoading, error } = usePosts(page + 1, rowsPerPage, undefined, hidden);
 
   // Delete post mutation
