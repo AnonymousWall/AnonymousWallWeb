@@ -155,9 +155,9 @@ export const UsersPage: React.FC = () => {
                         label={user.role || 'USER'}
                         size="small"
                         color={
-                          user.role === 'ADMIN'
+                          (user.role || 'USER') === 'ADMIN'
                             ? 'error'
-                            : user.role === 'MODERATOR'
+                            : (user.role || 'USER') === 'MODERATOR'
                               ? 'warning'
                               : 'default'
                         }
