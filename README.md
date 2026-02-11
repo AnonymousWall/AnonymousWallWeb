@@ -87,15 +87,17 @@ npm install
 
 3. Configure environment variables (optional):
 
+**Development Mode (Default):**
+The application uses Vite's proxy feature to avoid CORS issues. No environment configuration is needed - requests to `/api` are automatically proxied to `http://localhost:8080`. You can skip creating a `.env` file.
+
+**Production or Direct API Access:**
+Create a `.env` file and configure the full API URL:
+
 ```bash
 cp .env.example .env
 ```
 
-**Development Mode (Default):**
-The application uses Vite's proxy feature to avoid CORS issues. No environment configuration is needed - requests to `/api` are automatically proxied to `http://localhost:8080`.
-
-**Production or Direct API Access:**
-Edit `.env` file to point directly to the API:
+Edit `.env` file:
 
 ```env
 VITE_API_BASE_URL=https://your-api-domain.com/api/v1
