@@ -13,14 +13,15 @@ import {
   CircularProgress,
 } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuthStore } from '../stores/authStore';
+import { ROUTES } from '../config/constants';
 
 export const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const login = useAuthStore((state) => state.login);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,9 +31,10 @@ export const LoginPage: React.FC = () => {
 
     try {
       await login({ email, password });
-      navigate('/');
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.error || err.message || 'Login failed. Please check your credentials.';
+      navigate(ROUTES.DASHBOARD);
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Login failed. Please check your credentials.';
       setError(errorMessage);
     } finally {
       setIsLoading(false);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -26,39 +26,30 @@ import {
   CheckCircle as CheckCircleIcon,
   Info as InfoIcon,
 } from '@mui/icons-material';
-import { apiService } from '../services/api';
+import { useUsers, useUser, useBlockUser, useUnblockUser } from '../hooks/useUsers';
+import { PAGINATION_CONFIG, SUCCESS_MESSAGES } from '../config/constants';
 import type { User } from '../types';
 import { format } from 'date-fns';
 
 export const UsersPage: React.FC = () => {
-  const [users, setUsers] = useState<User[]>([]);
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(20);
-  const [total, setTotal] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [rowsPerPage, setRowsPerPage] = useState(PAGINATION_CONFIG.DEFAULT_PAGE_SIZE);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [actionType, setActionType] = useState<'block' | 'unblock'>('block');
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState('');
 
-  useEffect(() => {
-    loadUsers();
-  }, [page, rowsPerPage]);
+  // Fetch users with pagination
+  const { data, isLoading, error } = useUsers(page + 1, rowsPerPage);
 
-  const loadUsers = async () => {
-    setIsLoading(true);
-    setError('');
-    try {
-      const response = await apiService.getUsers(page + 1, rowsPerPage);
-      setUsers(response.data);
-      setTotal(response.pagination.total);
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to load users');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Fetch individual user details
+  const { data: userDetails } = useUser(selectedUserId || '', !!selectedUserId);
+
+  // Mutations
+  const blockUserMutation = useBlockUser();
+  const unblockUserMutation = useUnblockUser();
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
@@ -69,14 +60,10 @@ export const UsersPage: React.FC = () => {
     setPage(0);
   };
 
-  const handleShowDetails = async (user: User) => {
-    try {
-      const fullUser = await apiService.getUserById(user.id);
-      setSelectedUser(fullUser);
-      setDetailsOpen(true);
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to load user details');
-    }
+  const handleShowDetails = (user: User) => {
+    setSelectedUserId(user.id);
+    setSelectedUser(user);
+    setDetailsOpen(true);
   };
 
   const handleBlockUnblock = (user: User, type: 'block' | 'unblock') => {
@@ -90,14 +77,17 @@ export const UsersPage: React.FC = () => {
 
     try {
       if (actionType === 'block') {
-        await apiService.blockUser(selectedUser.id);
+        await blockUserMutation.mutateAsync(selectedUser.id);
+        setSuccessMessage(SUCCESS_MESSAGES.USER_BLOCKED);
       } else {
-        await apiService.unblockUser(selectedUser.id);
+        await unblockUserMutation.mutateAsync(selectedUser.id);
+        setSuccessMessage(SUCCESS_MESSAGES.USER_UNBLOCKED);
       }
       setConfirmOpen(false);
-      loadUsers();
-    } catch (err: any) {
-      setError(err.response?.data?.error || `Failed to ${actionType} user`);
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (err) {
+      // Error is handled by mutation
+      console.error('Action failed:', err);
     }
   };
 
@@ -115,8 +105,14 @@ export const UsersPage: React.FC = () => {
       </Box>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
-          {error}
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error.message}
+        </Alert>
+      )}
+
+      {successMessage && (
+        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMessage('')}>
+          {successMessage}
         </Alert>
       )}
 
@@ -142,14 +138,14 @@ export const UsersPage: React.FC = () => {
                     <CircularProgress />
                   </TableCell>
                 </TableRow>
-              ) : users.length === 0 ? (
+              ) : !data || data.data.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} align="center">
                     No users found
                   </TableCell>
                 </TableRow>
               ) : (
-                users.map((user) => (
+                data.data.map((user) => (
                   <TableRow key={user.id} hover>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>{user.profileName}</TableCell>
@@ -158,24 +154,24 @@ export const UsersPage: React.FC = () => {
                       <Chip
                         label={user.role}
                         size="small"
-                        color={user.role === 'ADMIN' ? 'error' : user.role === 'MODERATOR' ? 'warning' : 'default'}
+                        color={user.role === 'ADMIN' ? 'error' : 'default'}
                       />
                     </TableCell>
                     <TableCell>
-                      <Chip
-                        label={user.blocked ? 'Blocked' : 'Active'}
-                        size="small"
-                        color={user.blocked ? 'error' : 'success'}
-                      />
+                      {user.blocked ? (
+                        <Chip label="Blocked" size="small" color="error" />
+                      ) : (
+                        <Chip label="Active" size="small" color="success" />
+                      )}
                     </TableCell>
                     <TableCell>
                       {user.reportCount > 0 ? (
                         <Chip label={user.reportCount} size="small" color="warning" />
                       ) : (
-                        <Chip label="0" size="small" />
+                        '-'
                       )}
                     </TableCell>
-                    <TableCell>{format(new Date(user.createdAt), 'MMM d, yyyy')}</TableCell>
+                    <TableCell>{format(new Date(user.createdAt), 'MMM dd, yyyy')}</TableCell>
                     <TableCell align="right">
                       <Tooltip title="View Details">
                         <IconButton size="small" onClick={() => handleShowDetails(user)}>
@@ -210,52 +206,52 @@ export const UsersPage: React.FC = () => {
             </TableBody>
           </Table>
         </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[10, 20, 50, 100]}
-          component="div"
-          count={total}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
+        {data && (
+          <TablePagination
+            rowsPerPageOptions={PAGINATION_CONFIG.PAGE_SIZE_OPTIONS}
+            component="div"
+            count={data.pagination.total}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        )}
       </Paper>
 
       {/* User Details Dialog */}
       <Dialog open={detailsOpen} onClose={() => setDetailsOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>User Details</DialogTitle>
         <DialogContent>
-          {selectedUser && (
-            <Box sx={{ pt: 1 }}>
+          {userDetails && (
+            <Box sx={{ mt: 1 }}>
               <Typography variant="body2" gutterBottom>
-                <strong>ID:</strong> {selectedUser.id}
+                <strong>Email:</strong> {userDetails.email}
               </Typography>
               <Typography variant="body2" gutterBottom>
-                <strong>Email:</strong> {selectedUser.email}
+                <strong>Profile Name:</strong> {userDetails.profileName}
               </Typography>
               <Typography variant="body2" gutterBottom>
-                <strong>Profile Name:</strong> {selectedUser.profileName}
+                <strong>School Domain:</strong> {userDetails.schoolDomain}
               </Typography>
               <Typography variant="body2" gutterBottom>
-                <strong>School Domain:</strong> {selectedUser.schoolDomain}
+                <strong>Role:</strong> {userDetails.role}
               </Typography>
               <Typography variant="body2" gutterBottom>
-                <strong>Role:</strong> {selectedUser.role}
+                <strong>Status:</strong> {userDetails.blocked ? 'Blocked' : 'Active'}
               </Typography>
               <Typography variant="body2" gutterBottom>
-                <strong>Status:</strong> {selectedUser.blocked ? 'Blocked' : 'Active'}
+                <strong>Verified:</strong> {userDetails.verified ? 'Yes' : 'No'}
               </Typography>
               <Typography variant="body2" gutterBottom>
-                <strong>Verified:</strong> {selectedUser.verified ? 'Yes' : 'No'}
+                <strong>Password Set:</strong> {userDetails.passwordSet ? 'Yes' : 'No'}
               </Typography>
               <Typography variant="body2" gutterBottom>
-                <strong>Password Set:</strong> {selectedUser.passwordSet ? 'Yes' : 'No'}
+                <strong>Report Count:</strong> {userDetails.reportCount}
               </Typography>
               <Typography variant="body2" gutterBottom>
-                <strong>Report Count:</strong> {selectedUser.reportCount}
-              </Typography>
-              <Typography variant="body2" gutterBottom>
-                <strong>Joined:</strong> {format(new Date(selectedUser.createdAt), 'PPP')}
+                <strong>Created At:</strong>{' '}
+                {format(new Date(userDetails.createdAt), 'MMM dd, yyyy HH:mm')}
               </Typography>
             </Box>
           )}
@@ -265,11 +261,9 @@ export const UsersPage: React.FC = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Confirmation Dialog */}
+      {/* Confirm Action Dialog */}
       <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
-        <DialogTitle>
-          Confirm {actionType === 'block' ? 'Block' : 'Unblock'} User
-        </DialogTitle>
+        <DialogTitle>Confirm Action</DialogTitle>
         <DialogContent>
           <Typography>
             Are you sure you want to {actionType} user <strong>{selectedUser?.email}</strong>?
@@ -281,8 +275,13 @@ export const UsersPage: React.FC = () => {
             onClick={confirmAction}
             color={actionType === 'block' ? 'error' : 'success'}
             variant="contained"
+            disabled={blockUserMutation.isPending || unblockUserMutation.isPending}
           >
-            {actionType === 'block' ? 'Block' : 'Unblock'}
+            {blockUserMutation.isPending || unblockUserMutation.isPending
+              ? 'Processing...'
+              : actionType === 'block'
+                ? 'Block'
+                : 'Unblock'}
           </Button>
         </DialogActions>
       </Dialog>
