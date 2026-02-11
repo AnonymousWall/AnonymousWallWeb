@@ -89,17 +89,16 @@ vercel --prod
 # Build the application
 npm run build
 
-# Upload to OCI Object Storage (overwrites existing files)
+# Upload to OCI Object Storage (overwrites files with same names)
 oci os object bulk-upload --bucket-name your-bucket-name --src-dir dist/ --overwrite
 
-# Note: To remove stale objects from previous deployments, you may need to
-# manually delete objects or use additional OCI CLI commands
+# Note: Unlike AWS S3 sync --delete, this only overwrites existing files.
+# Stale objects from previous deployments need manual cleanup.
 ```
 
 **Object Storage Configuration:**
 - Create a bucket in your OCI compartment
-- Enable public access to the bucket
-- Set bucket visibility to public
+- Enable public access and set bucket visibility to public
 - Set index.html as the default object
 
 **OCI CDN Configuration:**
