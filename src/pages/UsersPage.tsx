@@ -31,6 +31,25 @@ import { PAGINATION_CONFIG, SUCCESS_MESSAGES } from '../config/constants';
 import type { User } from '../types';
 import { format } from 'date-fns';
 
+/**
+ * Safely format a date string, returning a fallback if the date is invalid
+ */
+const formatDate = (
+  dateString: string | undefined,
+  formatStr: string,
+  fallback = 'N/A'
+): string => {
+  if (!dateString) return fallback;
+  try {
+    const date = new Date(dateString);
+    // Check if date is valid
+    if (isNaN(date.getTime())) return fallback;
+    return format(date, formatStr);
+  } catch {
+    return fallback;
+  }
+};
+
 export const UsersPage: React.FC = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(PAGINATION_CONFIG.DEFAULT_PAGE_SIZE);
@@ -192,7 +211,7 @@ export const UsersPage: React.FC = () => {
                         '-'
                       )}
                     </TableCell>
-                    <TableCell>{format(new Date(user.createdAt), 'MMM dd, yyyy')}</TableCell>
+                    <TableCell>{formatDate(user.createdAt, 'MMM dd, yyyy')}</TableCell>
                     <TableCell align="right">
                       <Tooltip title="View Details">
                         <IconButton size="small" onClick={() => handleShowDetails(user)}>
@@ -272,7 +291,7 @@ export const UsersPage: React.FC = () => {
               </Typography>
               <Typography variant="body2" gutterBottom>
                 <strong>Created At:</strong>{' '}
-                {format(new Date(userDetails.createdAt), 'MMM dd, yyyy HH:mm')}
+                {formatDate(userDetails.createdAt, 'MMM dd, yyyy HH:mm')}
               </Typography>
             </Box>
           )}
