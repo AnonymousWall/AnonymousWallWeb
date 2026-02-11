@@ -95,7 +95,10 @@ export const CommentsPage: React.FC = () => {
           <Select
             value={hiddenFilter}
             label="Filter"
-            onChange={(e) => setHiddenFilter(e.target.value as 'all' | 'visible' | 'hidden')}
+            onChange={(e) => {
+              setHiddenFilter(e.target.value as 'all' | 'visible' | 'hidden');
+              setPage(0);
+            }}
           >
             <MenuItem value="all">All Comments</MenuItem>
             <MenuItem value="visible">Visible Only</MenuItem>
