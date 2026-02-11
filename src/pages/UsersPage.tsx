@@ -44,6 +44,11 @@ export const UsersPage: React.FC = () => {
   // Fetch users with pagination
   const { data, isLoading, error } = useUsers(page + 1, rowsPerPage);
 
+  // Debug logging
+  React.useEffect(() => {
+    console.log('UsersPage state:', { isLoading, error: error?.message, data });
+  }, [isLoading, error, data]);
+
   // Fetch individual user details
   const { data: userDetails } = useUser(selectedUserId || '', !!selectedUserId);
 
@@ -106,7 +111,9 @@ export const UsersPage: React.FC = () => {
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          {error.message}
+          <strong>Error loading users:</strong> {error.message}
+          <br />
+          <small>Check browser console for more details</small>
         </Alert>
       )}
 
@@ -141,7 +148,15 @@ export const UsersPage: React.FC = () => {
               ) : !data || data.data.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} align="center">
-                    No users found
+                    {!data ? (
+                      <>
+                        No data received from server
+                        <br />
+                        <small>Check browser console for details</small>
+                      </>
+                    ) : (
+                      'No users found'
+                    )}
                   </TableCell>
                 </TableRow>
               ) : (
