@@ -10,6 +10,7 @@ import {
   TableHead,
   TableRow,
   TablePagination,
+  TableSortLabel,
   CircularProgress,
   Alert,
   FormControl,
@@ -51,10 +52,12 @@ export const ReportsPage: React.FC = () => {
   const [rowsPerPage, setRowsPerPage] = useState<number>(PAGINATION_CONFIG.DEFAULT_PAGE_SIZE);
   const [tabValue, setTabValue] = useState(0);
   const [reportType, setReportType] = useState<'all' | 'post' | 'comment'>('all');
+  const [sortBy, setSortBy] = useState<string>('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  // Fetch reports with pagination and filter
+  // Fetch reports with pagination, filter, and sorting
   const type = reportType === 'all' ? undefined : reportType;
-  const { data: reports, isLoading, error } = useReports(page + 1, rowsPerPage, type);
+  const { data: reports, isLoading, error } = useReports(page + 1, rowsPerPage, type, sortBy, sortOrder);
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
@@ -62,6 +65,13 @@ export const ReportsPage: React.FC = () => {
 
   const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
     setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const handleSort = (field: string) => {
+    const isAsc = sortBy === field && sortOrder === 'asc';
+    setSortOrder(isAsc ? 'desc' : 'asc');
+    setSortBy(field);
     setPage(0);
   };
 
@@ -125,7 +135,15 @@ export const ReportsPage: React.FC = () => {
                       <TableCell>Post ID</TableCell>
                       <TableCell>Reporter ID</TableCell>
                       <TableCell>Reason</TableCell>
-                      <TableCell>Reported At</TableCell>
+                      <TableCell>
+                        <TableSortLabel
+                          active={sortBy === 'createdAt'}
+                          direction={sortBy === 'createdAt' ? sortOrder : 'asc'}
+                          onClick={() => handleSort('createdAt')}
+                        >
+                          Reported At
+                        </TableSortLabel>
+                      </TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -172,7 +190,15 @@ export const ReportsPage: React.FC = () => {
                       <TableCell>Comment ID</TableCell>
                       <TableCell>Reporter ID</TableCell>
                       <TableCell>Reason</TableCell>
-                      <TableCell>Reported At</TableCell>
+                      <TableCell>
+                        <TableSortLabel
+                          active={sortBy === 'createdAt'}
+                          direction={sortBy === 'createdAt' ? sortOrder : 'asc'}
+                          onClick={() => handleSort('createdAt')}
+                        >
+                          Reported At
+                        </TableSortLabel>
+                      </TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>

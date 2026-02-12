@@ -10,6 +10,7 @@ import {
   TableHead,
   TableRow,
   TablePagination,
+  TableSortLabel,
   Chip,
   IconButton,
   Button,
@@ -38,10 +39,12 @@ export const CommentsPage: React.FC = () => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [hiddenFilter, setHiddenFilter] = useState<'all' | 'visible' | 'hidden'>('all');
   const [successMessage, setSuccessMessage] = useState('');
+  const [sortBy, setSortBy] = useState<string>('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  // Fetch comments with pagination and filter
+  // Fetch comments with pagination, filter, and sorting
   const hidden = hiddenFilter === 'all' ? undefined : hiddenFilter === 'hidden';
-  const { data, isLoading, error } = useComments(page + 1, rowsPerPage, hidden);
+  const { data, isLoading, error } = useComments(page + 1, rowsPerPage, hidden, sortBy, sortOrder);
 
   // Delete comment mutation
   const deleteCommentMutation = useDeleteComment();
@@ -52,6 +55,13 @@ export const CommentsPage: React.FC = () => {
 
   const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
     setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const handleSort = (field: string) => {
+    const isAsc = sortBy === field && sortOrder === 'asc';
+    setSortOrder(isAsc ? 'desc' : 'asc');
+    setSortBy(field);
     setPage(0);
   };
 
@@ -128,7 +138,15 @@ export const CommentsPage: React.FC = () => {
                 <TableCell>Author</TableCell>
                 <TableCell>Post ID</TableCell>
                 <TableCell>Status</TableCell>
-                <TableCell>Created</TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={sortBy === 'createdAt'}
+                    direction={sortBy === 'createdAt' ? sortOrder : 'asc'}
+                    onClick={() => handleSort('createdAt')}
+                  >
+                    Created
+                  </TableSortLabel>
+                </TableCell>
                 <TableCell align="right">Actions</TableCell>
               </TableRow>
             </TableHead>

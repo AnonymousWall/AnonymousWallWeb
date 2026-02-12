@@ -10,6 +10,7 @@ import {
   TableHead,
   TableRow,
   TablePagination,
+  TableSortLabel,
   Chip,
   IconButton,
   Button,
@@ -39,9 +40,11 @@ export const UsersPage: React.FC = () => {
   const [actionType, setActionType] = useState<'block' | 'unblock'>('block');
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState('');
+  const [sortBy, setSortBy] = useState<string>('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  // Fetch users with pagination
-  const { data, isLoading, error } = useUsers(page + 1, rowsPerPage);
+  // Fetch users with pagination and sorting
+  const { data, isLoading, error } = useUsers(page + 1, rowsPerPage, sortBy, sortOrder);
 
   // Fetch individual user details
   const { data: userDetails } = useUser(selectedUserId || '', !!selectedUserId);
@@ -56,6 +59,13 @@ export const UsersPage: React.FC = () => {
 
   const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
     setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const handleSort = (field: string) => {
+    const isAsc = sortBy === field && sortOrder === 'asc';
+    setSortOrder(isAsc ? 'desc' : 'asc');
+    setSortBy(field);
     setPage(0);
   };
 
@@ -122,13 +132,37 @@ export const UsersPage: React.FC = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Email</TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={sortBy === 'email'}
+                    direction={sortBy === 'email' ? sortOrder : 'asc'}
+                    onClick={() => handleSort('email')}
+                  >
+                    Email
+                  </TableSortLabel>
+                </TableCell>
                 <TableCell>Profile Name</TableCell>
                 <TableCell>School</TableCell>
                 <TableCell>Role</TableCell>
                 <TableCell>Status</TableCell>
-                <TableCell>Reports</TableCell>
-                <TableCell>Joined</TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={sortBy === 'reportCount'}
+                    direction={sortBy === 'reportCount' ? sortOrder : 'asc'}
+                    onClick={() => handleSort('reportCount')}
+                  >
+                    Reports
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={sortBy === 'createdAt'}
+                    direction={sortBy === 'createdAt' ? sortOrder : 'asc'}
+                    onClick={() => handleSort('createdAt')}
+                  >
+                    Joined
+                  </TableSortLabel>
+                </TableCell>
                 <TableCell align="right">Actions</TableCell>
               </TableRow>
             </TableHead>
