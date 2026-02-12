@@ -30,6 +30,7 @@ import { Delete as DeleteIcon, Visibility as VisibilityIcon } from '@mui/icons-m
 import { useComments, useDeleteComment } from '../hooks/useComments';
 import { PAGINATION_CONFIG, SUCCESS_MESSAGES } from '../config/constants';
 import type { Comment } from '../types';
+import { format } from 'date-fns';
 
 export const CommentsPage: React.FC = () => {
   const [page, setPage] = useState(0);
@@ -59,8 +60,13 @@ export const CommentsPage: React.FC = () => {
   };
 
   const handleSort = (field: string) => {
-    const isAsc = sortBy === field && sortOrder === 'asc';
-    setSortOrder(isAsc ? 'desc' : 'asc');
+    if (sortBy === field) {
+      // Toggle order if clicking the same field
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      // When switching to a new field, use desc for dates and asc for others
+      setSortOrder(field === 'createdAt' ? 'desc' : 'asc');
+    }
     setSortBy(field);
     setPage(0);
   };
@@ -184,7 +190,9 @@ export const CommentsPage: React.FC = () => {
                         color={comment.hidden ? 'error' : 'success'}
                       />
                     </TableCell>
-                    <TableCell>{comment.createdAt}</TableCell>
+                    <TableCell>
+                      {format(new Date(comment.createdAt), 'MMM d, yyyy HH:mm')}
+                    </TableCell>
                     <TableCell align="right">
                       <Tooltip title="View Details">
                         <IconButton size="small" onClick={() => handleShowDetails(comment)}>
@@ -252,7 +260,8 @@ export const CommentsPage: React.FC = () => {
                 <strong>Status:</strong> {selectedComment.hidden ? 'Hidden' : 'Visible'}
               </Typography>
               <Typography variant="body2" gutterBottom>
-                <strong>Created:</strong> {selectedComment.createdAt}
+                <strong>Created:</strong>{' '}
+                {format(new Date(selectedComment.createdAt), 'MMM d, yyyy HH:mm:ss')}
               </Typography>
             </Box>
           )}
