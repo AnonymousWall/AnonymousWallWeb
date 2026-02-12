@@ -15,13 +15,13 @@ export const userService = {
     page: number,
     limit: number,
     sortBy?: string,
-    order?: 'asc' | 'desc'
+    sortOrder?: 'asc' | 'desc'
   ): Promise<PaginatedResponse<User>> {
     return httpClient.get<PaginatedResponse<User>>(API_ENDPOINTS.ADMIN.USERS, {
       page,
       limit,
       sortBy,
-      order,
+      sortOrder,
     });
   },
 

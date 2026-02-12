@@ -11,11 +11,11 @@ export const useComments = (
   limit: number,
   hidden?: boolean,
   sortBy?: string,
-  order?: 'asc' | 'desc'
+  sortOrder?: 'asc' | 'desc'
 ) => {
   return useQuery<PaginatedResponse<Comment>, Error>({
-    queryKey: [QUERY_KEYS.COMMENTS, page, limit, hidden, sortBy, order],
-    queryFn: () => commentService.getComments(page, limit, hidden, sortBy, order),
+    queryKey: [QUERY_KEYS.COMMENTS, page, limit, hidden, sortBy, sortOrder],
+    queryFn: () => commentService.getComments(page, limit, hidden, sortBy, sortOrder),
   });
 };
 
