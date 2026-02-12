@@ -16,14 +16,14 @@ export const reportService = {
     limit: number,
     type?: 'post' | 'comment',
     sortBy?: string,
-    order?: 'asc' | 'desc'
+    sortOrder?: 'asc' | 'desc'
   ): Promise<ReportsResponse> {
     return httpClient.get<ReportsResponse>(API_ENDPOINTS.ADMIN.REPORTS, {
       page,
       limit,
       type,
       sortBy,
-      order,
+      sortOrder,
     });
   },
 };

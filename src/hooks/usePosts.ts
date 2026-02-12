@@ -12,11 +12,12 @@ export const usePosts = (
   userId?: string,
   hidden?: boolean,
   sortBy?: string,
-  order?: 'asc' | 'desc'
+  sortOrder?: 'asc' | 'desc',
+  wall?: 'national' | 'campus'
 ) => {
   return useQuery<PaginatedResponse<Post>, Error>({
-    queryKey: [QUERY_KEYS.POSTS, page, limit, userId, hidden, sortBy, order],
-    queryFn: () => postService.getPosts(page, limit, userId, hidden, sortBy, order),
+    queryKey: [QUERY_KEYS.POSTS, page, limit, userId, hidden, sortBy, sortOrder, wall],
+    queryFn: () => postService.getPosts(page, limit, userId, hidden, sortBy, sortOrder, wall),
   });
 };
 

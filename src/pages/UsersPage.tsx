@@ -148,7 +148,15 @@ export const UsersPage: React.FC = () => {
                   </TableSortLabel>
                 </TableCell>
                 <TableCell>Profile Name</TableCell>
-                <TableCell>School</TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={sortBy === 'schoolDomain'}
+                    direction={sortBy === 'schoolDomain' ? sortOrder : 'asc'}
+                    onClick={() => handleSort('schoolDomain')}
+                  >
+                    School
+                  </TableSortLabel>
+                </TableCell>
                 <TableCell>Role</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell>

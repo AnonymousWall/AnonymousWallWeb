@@ -17,7 +17,8 @@ export const postService = {
     userId?: string,
     hidden?: boolean,
     sortBy?: string,
-    order?: 'asc' | 'desc'
+    sortOrder?: 'asc' | 'desc',
+    wall?: 'national' | 'campus'
   ): Promise<PaginatedResponse<Post>> {
     return httpClient.get<PaginatedResponse<Post>>(API_ENDPOINTS.ADMIN.POSTS, {
       page,
@@ -25,7 +26,8 @@ export const postService = {
       userId,
       hidden,
       sortBy,
-      order,
+      sortOrder,
+      wall,
     });
   },
 

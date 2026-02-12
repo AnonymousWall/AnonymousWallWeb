@@ -11,10 +11,10 @@ export const useReports = (
   limit: number,
   type?: 'post' | 'comment',
   sortBy?: string,
-  order?: 'asc' | 'desc'
+  sortOrder?: 'asc' | 'desc'
 ) => {
   return useQuery<ReportsResponse, Error>({
-    queryKey: [QUERY_KEYS.REPORTS, page, limit, type, sortBy, order],
-    queryFn: () => reportService.getReports(page, limit, type, sortBy, order),
+    queryKey: [QUERY_KEYS.REPORTS, page, limit, type, sortBy, sortOrder],
+    queryFn: () => reportService.getReports(page, limit, type, sortBy, sortOrder),
   });
 };

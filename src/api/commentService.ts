@@ -16,14 +16,14 @@ export const commentService = {
     limit: number,
     hidden?: boolean,
     sortBy?: string,
-    order?: 'asc' | 'desc'
+    sortOrder?: 'asc' | 'desc'
   ): Promise<PaginatedResponse<Comment>> {
     return httpClient.get<PaginatedResponse<Comment>>(API_ENDPOINTS.ADMIN.COMMENTS, {
       page,
       limit,
       hidden,
       sortBy,
-      order,
+      sortOrder,
     });
   },
 
