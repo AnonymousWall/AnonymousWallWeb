@@ -128,7 +128,7 @@ Complete integration with all Admin API endpoints:
 - Deployment to 6+ platforms:
   - Netlify
   - Vercel
-  - AWS S3 + CloudFront
+  - OCI Object Storage + CDN
   - GitHub Pages
   - Docker
   - Traditional servers (Apache/Nginx)

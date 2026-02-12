@@ -83,28 +83,36 @@ vercel --prod
    - Output Directory: `dist`
 4. Add environment variables in Vercel dashboard
 
-### 3. AWS S3 + CloudFront
+### 3. OCI Object Storage + CDN
 
 ```bash
 # Build the application
 npm run build
 
-# Upload to S3
-aws s3 sync dist/ s3://your-bucket-name --delete
+# Upload to OCI Object Storage (overwrites files with same names)
+oci os object bulk-upload --bucket-name your-bucket-name --src-dir dist/ --overwrite
 
-# Invalidate CloudFront cache
-aws cloudfront create-invalidation --distribution-id YOUR_DIST_ID --paths "/*"
+# Note: Unlike AWS S3 sync --delete, this only overwrites existing files.
+# Stale objects from previous deployments need manual cleanup.
 ```
 
-**S3 Configuration:**
-- Enable static website hosting
-- Set index.html as index document
-- Configure bucket policy for public read access
+**Object Storage Configuration:**
+- Create a bucket in your OCI compartment
+- Enable public access and set bucket visibility to public
+- Set index.html as the default object
 
-**CloudFront Configuration:**
-- Create distribution pointing to S3 bucket
-- Configure custom error responses (404 → /index.html)
-- Add SSL certificate
+**OCI CDN Configuration:**
+OCI offers Content Delivery Network capabilities through multiple services:
+- **OCI Edge Services**: Use OCI Console to create a CDN distribution
+- Configure origin settings with your Object Storage bucket URL
+- Set custom error responses (404 → /index.html)
+- Add SSL certificate via OCI Certificates service
+
+**Cache Invalidation:**
+After deploying new content, you can invalidate the CDN cache through:
+- **OCI Console**: Navigate to Edge Services → Your Distribution → Purge Cache
+- Set purge type to "All" or specify paths for selective invalidation
+- Alternatively, configure automatic cache invalidation policies in your deployment workflow
 
 ### 4. GitHub Pages
 
@@ -354,7 +362,7 @@ jobs:
 Use your hosting platform's rollback features:
 - Netlify: Deploy history
 - Vercel: Deployments page
-- AWS: CloudFormation rollback
+- OCI: Resource Manager rollback
 
 ## Support
 
