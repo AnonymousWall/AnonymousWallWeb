@@ -57,7 +57,11 @@ export const ReportsPage: React.FC = () => {
 
   // Fetch reports with pagination, filter, and sorting
   const type = reportType === 'all' ? undefined : reportType;
-  const { data: reports, isLoading, error } = useReports(page + 1, rowsPerPage, type, sortBy, sortOrder);
+  const {
+    data: reports,
+    isLoading,
+    error,
+  } = useReports(page + 1, rowsPerPage, type, sortBy, sortOrder);
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
@@ -69,9 +73,14 @@ export const ReportsPage: React.FC = () => {
   };
 
   const handleSort = (field: string) => {
-    const isAsc = sortBy === field && sortOrder === 'asc';
-    setSortOrder(isAsc ? 'desc' : 'asc');
-    setSortBy(field);
+    if (sortBy === field) {
+      // Toggle order if clicking the same field
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      // When switching to a new field, use desc for dates and asc for others
+      setSortBy(field);
+      setSortOrder(field === 'createdAt' ? 'desc' : 'asc');
+    }
     setPage(0);
   };
 

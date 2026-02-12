@@ -30,6 +30,7 @@ import { Delete as DeleteIcon, Visibility as VisibilityIcon } from '@mui/icons-m
 import { usePosts, useDeletePost } from '../hooks/usePosts';
 import { PAGINATION_CONFIG, SUCCESS_MESSAGES } from '../config/constants';
 import type { Post } from '../types';
+import { format } from 'date-fns';
 
 export const PostsPage: React.FC = () => {
   const [page, setPage] = useState(0);
@@ -66,9 +67,14 @@ export const PostsPage: React.FC = () => {
   };
 
   const handleSort = (field: string) => {
-    const isAsc = sortBy === field && sortOrder === 'asc';
-    setSortOrder(isAsc ? 'desc' : 'asc');
-    setSortBy(field);
+    if (sortBy === field) {
+      // Toggle order if clicking the same field
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      // When switching to a new field, use desc for dates and asc for others
+      setSortBy(field);
+      setSortOrder(field === 'createdAt' ? 'desc' : 'asc');
+    }
     setPage(0);
   };
 
@@ -220,7 +226,7 @@ export const PostsPage: React.FC = () => {
                         color={post.hidden ? 'error' : 'success'}
                       />
                     </TableCell>
-                    <TableCell>{post.createdAt}</TableCell>
+                    <TableCell>{format(new Date(post.createdAt), 'MMM d, yyyy HH:mm')}</TableCell>
                     <TableCell align="right">
                       <Tooltip title="View Details">
                         <IconButton size="small" onClick={() => handleShowDetails(post)}>
@@ -300,10 +306,12 @@ export const PostsPage: React.FC = () => {
                 <strong>Status:</strong> {selectedPost.hidden ? 'Hidden' : 'Visible'}
               </Typography>
               <Typography variant="body2" gutterBottom>
-                <strong>Created:</strong> {selectedPost.createdAt}
+                <strong>Created:</strong>{' '}
+                {format(new Date(selectedPost.createdAt), 'MMM d, yyyy HH:mm:ss')}
               </Typography>
               <Typography variant="body2" gutterBottom>
-                <strong>Updated:</strong> {selectedPost.updatedAt}
+                <strong>Updated:</strong>{' '}
+                {format(new Date(selectedPost.updatedAt), 'MMM d, yyyy HH:mm:ss')}
               </Typography>
             </Box>
           )}
