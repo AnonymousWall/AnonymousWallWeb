@@ -11,6 +11,7 @@ import { UsersPage } from './pages/UsersPage';
 import { PostsPage } from './pages/PostsPage';
 import { CommentsPage } from './pages/CommentsPage';
 import { ReportsPage } from './pages/ReportsPage';
+import { SchoolsPage } from './pages/SchoolsPage';
 import { ROUTES } from './config/constants';
 
 // Create QueryClient instance
@@ -63,6 +64,7 @@ function App() {
               <Route path="posts" element={<PostsPage />} />
               <Route path="comments" element={<CommentsPage />} />
               <Route path="reports" element={<ReportsPage />} />
+              <Route path="schools" element={<SchoolsPage />} />
             </Route>
             <Route path="*" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
           </Routes>

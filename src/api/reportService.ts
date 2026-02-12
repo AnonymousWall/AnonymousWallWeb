@@ -14,12 +14,16 @@ export const reportService = {
   async getReports(
     page: number,
     limit: number,
-    type?: 'post' | 'comment'
+    type?: 'post' | 'comment',
+    sortBy?: string,
+    order?: 'asc' | 'desc'
   ): Promise<ReportsResponse> {
     return httpClient.get<ReportsResponse>(API_ENDPOINTS.ADMIN.REPORTS, {
       page,
       limit,
       type,
+      sortBy,
+      order,
     });
   },
 };

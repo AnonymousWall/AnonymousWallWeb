@@ -26,6 +26,7 @@ import {
   Article as ArticleIcon,
   Comment as CommentIcon,
   Report as ReportIcon,
+  School as SchoolIcon,
   ExitToApp as LogoutIcon,
 } from '@mui/icons-material';
 import { useAuthStore } from '../stores/authStore';
@@ -45,6 +46,7 @@ const navItems: NavItem[] = [
   { label: 'Posts', path: ROUTES.POSTS, icon: <ArticleIcon /> },
   { label: 'Comments', path: ROUTES.COMMENTS, icon: <CommentIcon /> },
   { label: 'Reports', path: ROUTES.REPORTS, icon: <ReportIcon /> },
+  { label: 'Schools', path: ROUTES.SCHOOLS, icon: <SchoolIcon /> },
 ];
 
 export const Layout: React.FC = () => {

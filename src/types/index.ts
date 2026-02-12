@@ -96,3 +96,16 @@ export interface DashboardStats {
   hiddenPosts: number;
   hiddenComments: number;
 }
+
+// School Domain types
+export interface SchoolDomain {
+  id: string;
+  domain: string;
+  schoolName: string;
+  createdAt: string;
+}
+
+export interface CreateSchoolDomainRequest {
+  domain: string;
+  schoolName: string;
+}

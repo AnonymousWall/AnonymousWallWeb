@@ -11,10 +11,17 @@ export const userService = {
   /**
    * Get paginated list of users
    */
-  async getUsers(page: number, limit: number): Promise<PaginatedResponse<User>> {
+  async getUsers(
+    page: number,
+    limit: number,
+    sortBy?: string,
+    order?: 'asc' | 'desc'
+  ): Promise<PaginatedResponse<User>> {
     return httpClient.get<PaginatedResponse<User>>(API_ENDPOINTS.ADMIN.USERS, {
       page,
       limit,
+      sortBy,
+      order,
     });
   },
 

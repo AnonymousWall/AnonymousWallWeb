@@ -6,9 +6,15 @@ import type { ReportsResponse } from '../types';
 /**
  * Custom hook to fetch reports
  */
-export const useReports = (page: number, limit: number, type?: 'post' | 'comment') => {
+export const useReports = (
+  page: number,
+  limit: number,
+  type?: 'post' | 'comment',
+  sortBy?: string,
+  order?: 'asc' | 'desc'
+) => {
   return useQuery<ReportsResponse, Error>({
-    queryKey: [QUERY_KEYS.REPORTS, page, limit, type],
-    queryFn: () => reportService.getReports(page, limit, type),
+    queryKey: [QUERY_KEYS.REPORTS, page, limit, type, sortBy, order],
+    queryFn: () => reportService.getReports(page, limit, type, sortBy, order),
   });
 };
