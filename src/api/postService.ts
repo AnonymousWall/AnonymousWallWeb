@@ -15,13 +15,17 @@ export const postService = {
     page: number,
     limit: number,
     userId?: string,
-    hidden?: boolean
+    hidden?: boolean,
+    sortBy?: string,
+    order?: 'asc' | 'desc'
   ): Promise<PaginatedResponse<Post>> {
     return httpClient.get<PaginatedResponse<Post>>(API_ENDPOINTS.ADMIN.POSTS, {
       page,
       limit,
       userId,
       hidden,
+      sortBy,
+      order,
     });
   },
 

@@ -10,6 +10,7 @@ import {
   TableHead,
   TableRow,
   TablePagination,
+  TableSortLabel,
   Chip,
   IconButton,
   Button,
@@ -38,10 +39,19 @@ export const PostsPage: React.FC = () => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [hiddenFilter, setHiddenFilter] = useState<'all' | 'visible' | 'hidden'>('all');
   const [successMessage, setSuccessMessage] = useState('');
+  const [sortBy, setSortBy] = useState<string>('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  // Fetch posts with pagination and filter
+  // Fetch posts with pagination, filter, and sorting
   const hidden = hiddenFilter === 'all' ? undefined : hiddenFilter === 'hidden';
-  const { data, isLoading, error } = usePosts(page + 1, rowsPerPage, undefined, hidden);
+  const { data, isLoading, error } = usePosts(
+    page + 1,
+    rowsPerPage,
+    undefined,
+    hidden,
+    sortBy,
+    sortOrder
+  );
 
   // Delete post mutation
   const deletePostMutation = useDeletePost();
@@ -52,6 +62,13 @@ export const PostsPage: React.FC = () => {
 
   const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
     setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const handleSort = (field: string) => {
+    const isAsc = sortBy === field && sortOrder === 'asc';
+    setSortOrder(isAsc ? 'desc' : 'asc');
+    setSortBy(field);
     setPage(0);
   };
 
@@ -121,14 +138,46 @@ export const PostsPage: React.FC = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Title</TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={sortBy === 'title'}
+                    direction={sortBy === 'title' ? sortOrder : 'asc'}
+                    onClick={() => handleSort('title')}
+                  >
+                    Title
+                  </TableSortLabel>
+                </TableCell>
                 <TableCell>Wall</TableCell>
                 <TableCell>School</TableCell>
                 <TableCell>Author</TableCell>
-                <TableCell>Likes</TableCell>
-                <TableCell>Comments</TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={sortBy === 'likeCount'}
+                    direction={sortBy === 'likeCount' ? sortOrder : 'asc'}
+                    onClick={() => handleSort('likeCount')}
+                  >
+                    Likes
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={sortBy === 'commentCount'}
+                    direction={sortBy === 'commentCount' ? sortOrder : 'asc'}
+                    onClick={() => handleSort('commentCount')}
+                  >
+                    Comments
+                  </TableSortLabel>
+                </TableCell>
                 <TableCell>Status</TableCell>
-                <TableCell>Created</TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={sortBy === 'createdAt'}
+                    direction={sortBy === 'createdAt' ? sortOrder : 'asc'}
+                    onClick={() => handleSort('createdAt')}
+                  >
+                    Created
+                  </TableSortLabel>
+                </TableCell>
                 <TableCell align="right">Actions</TableCell>
               </TableRow>
             </TableHead>

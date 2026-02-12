@@ -32,6 +32,7 @@ export const ROUTES = {
   POSTS: '/posts',
   COMMENTS: '/comments',
   REPORTS: '/reports',
+  SCHOOLS: '/schools',
 } as const;
 
 // Role Configuration
@@ -61,6 +62,8 @@ export const API_ENDPOINTS = {
     COMMENTS: '/admin/comments',
     DELETE_COMMENT: (id: string) => `/admin/comments/${id}`,
     REPORTS: '/admin/reports',
+    SCHOOL_DOMAINS: '/admin/school-domains',
+    DELETE_SCHOOL_DOMAIN: (id: string) => `/admin/school-domains/${id}`,
   },
 } as const;
 
@@ -72,6 +75,7 @@ export const QUERY_KEYS = {
   COMMENTS: 'comments',
   REPORTS: 'reports',
   DASHBOARD_STATS: 'dashboard-stats',
+  SCHOOL_DOMAINS: 'school-domains',
 } as const;
 
 // Error Messages
@@ -93,4 +97,6 @@ export const SUCCESS_MESSAGES = {
   USER_UNBLOCKED: 'User unblocked successfully.',
   POST_DELETED: 'Post deleted successfully.',
   COMMENT_DELETED: 'Comment deleted successfully.',
+  SCHOOL_DOMAIN_ADDED: 'School domain added successfully.',
+  SCHOOL_DOMAIN_DELETED: 'School domain deleted successfully.',
 } as const;

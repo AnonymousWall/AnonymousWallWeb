@@ -6,10 +6,10 @@ import type { User, PaginatedResponse } from '../types';
 /**
  * Custom hook to fetch users
  */
-export const useUsers = (page: number, limit: number) => {
+export const useUsers = (page: number, limit: number, sortBy?: string, order?: 'asc' | 'desc') => {
   return useQuery<PaginatedResponse<User>, Error>({
-    queryKey: [QUERY_KEYS.USERS, page, limit],
-    queryFn: () => userService.getUsers(page, limit),
+    queryKey: [QUERY_KEYS.USERS, page, limit, sortBy, order],
+    queryFn: () => userService.getUsers(page, limit, sortBy, order),
   });
 };
 

@@ -6,10 +6,17 @@ import type { Post, PaginatedResponse } from '../types';
 /**
  * Custom hook to fetch posts
  */
-export const usePosts = (page: number, limit: number, userId?: string, hidden?: boolean) => {
+export const usePosts = (
+  page: number,
+  limit: number,
+  userId?: string,
+  hidden?: boolean,
+  sortBy?: string,
+  order?: 'asc' | 'desc'
+) => {
   return useQuery<PaginatedResponse<Post>, Error>({
-    queryKey: [QUERY_KEYS.POSTS, page, limit, userId, hidden],
-    queryFn: () => postService.getPosts(page, limit, userId, hidden),
+    queryKey: [QUERY_KEYS.POSTS, page, limit, userId, hidden, sortBy, order],
+    queryFn: () => postService.getPosts(page, limit, userId, hidden, sortBy, order),
   });
 };
 
