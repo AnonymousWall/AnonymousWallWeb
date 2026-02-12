@@ -11,10 +11,15 @@ export const commentService = {
   /**
    * Get paginated list of comments
    */
-  async getComments(page: number, limit: number): Promise<PaginatedResponse<Comment>> {
+  async getComments(
+    page: number,
+    limit: number,
+    hidden?: boolean
+  ): Promise<PaginatedResponse<Comment>> {
     return httpClient.get<PaginatedResponse<Comment>>(API_ENDPOINTS.ADMIN.COMMENTS, {
       page,
       limit,
+      hidden,
     });
   },
 

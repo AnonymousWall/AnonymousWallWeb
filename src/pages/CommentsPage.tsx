@@ -20,6 +20,10 @@ import {
   CircularProgress,
   Alert,
   Tooltip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import { Delete as DeleteIcon, Visibility as VisibilityIcon } from '@mui/icons-material';
 import { useComments, useDeleteComment } from '../hooks/useComments';
@@ -32,10 +36,12 @@ export const CommentsPage: React.FC = () => {
   const [selectedComment, setSelectedComment] = useState<Comment | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [hiddenFilter, setHiddenFilter] = useState<'all' | 'visible' | 'hidden'>('all');
   const [successMessage, setSuccessMessage] = useState('');
 
-  // Fetch comments with pagination
-  const { data, isLoading, error } = useComments(page + 1, rowsPerPage);
+  // Fetch comments with pagination and filter
+  const hidden = hiddenFilter === 'all' ? undefined : hiddenFilter === 'hidden';
+  const { data, isLoading, error } = useComments(page + 1, rowsPerPage, hidden);
 
   // Delete comment mutation
   const deleteCommentMutation = useDeleteComment();
@@ -75,13 +81,30 @@ export const CommentsPage: React.FC = () => {
 
   return (
     <Box>
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" fontWeight="bold" gutterBottom>
-          Comment Moderation
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Manage and moderate comments
-        </Typography>
+      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box>
+          <Typography variant="h4" fontWeight="bold" gutterBottom>
+            Comment Moderation
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Manage and moderate comments
+          </Typography>
+        </Box>
+        <FormControl sx={{ minWidth: 150 }}>
+          <InputLabel>Filter</InputLabel>
+          <Select
+            value={hiddenFilter}
+            label="Filter"
+            onChange={(e) => {
+              setHiddenFilter(e.target.value as 'all' | 'visible' | 'hidden');
+              setPage(0);
+            }}
+          >
+            <MenuItem value="all">All Comments</MenuItem>
+            <MenuItem value="visible">Visible Only</MenuItem>
+            <MenuItem value="hidden">Hidden Only</MenuItem>
+          </Select>
+        </FormControl>
       </Box>
 
       {error && (

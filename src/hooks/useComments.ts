@@ -6,10 +6,10 @@ import type { Comment, PaginatedResponse } from '../types';
 /**
  * Custom hook to fetch comments
  */
-export const useComments = (page: number, limit: number) => {
+export const useComments = (page: number, limit: number, hidden?: boolean) => {
   return useQuery<PaginatedResponse<Comment>, Error>({
-    queryKey: [QUERY_KEYS.COMMENTS, page, limit],
-    queryFn: () => commentService.getComments(page, limit),
+    queryKey: [QUERY_KEYS.COMMENTS, page, limit, hidden],
+    queryFn: () => commentService.getComments(page, limit, hidden),
   });
 };
 
