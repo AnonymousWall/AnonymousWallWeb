@@ -39,19 +39,22 @@ export const PostsPage: React.FC = () => {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [hiddenFilter, setHiddenFilter] = useState<'all' | 'visible' | 'hidden'>('all');
+  const [wallFilter, setWallFilter] = useState<'all' | 'national' | 'campus'>('all');
   const [successMessage, setSuccessMessage] = useState('');
   const [sortBy, setSortBy] = useState<string>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   // Fetch posts with pagination, filter, and sorting
   const hidden = hiddenFilter === 'all' ? undefined : hiddenFilter === 'hidden';
+  const wall = wallFilter === 'all' ? undefined : wallFilter;
   const { data, isLoading, error } = usePosts(
     page + 1,
     rowsPerPage,
     undefined,
     hidden,
     sortBy,
-    sortOrder
+    sortOrder,
+    wall
   );
 
   // Delete post mutation
@@ -153,7 +156,23 @@ export const PostsPage: React.FC = () => {
                     Title
                   </TableSortLabel>
                 </TableCell>
-                <TableCell>Wall</TableCell>
+                <TableCell>
+                  <FormControl size="small" sx={{ minWidth: 100 }}>
+                    <Select
+                      value={wallFilter}
+                      onChange={(e) => {
+                        setWallFilter(e.target.value as 'all' | 'national' | 'campus');
+                        setPage(0);
+                      }}
+                      displayEmpty
+                      sx={{ fontSize: '0.875rem', fontWeight: 500 }}
+                    >
+                      <MenuItem value="all">All Walls</MenuItem>
+                      <MenuItem value="national">National</MenuItem>
+                      <MenuItem value="campus">Campus</MenuItem>
+                    </Select>
+                  </FormControl>
+                </TableCell>
                 <TableCell>School</TableCell>
                 <TableCell>Author</TableCell>
                 <TableCell>
