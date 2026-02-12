@@ -165,6 +165,7 @@ export const PostsPage: React.FC = () => {
                         setPage(0);
                       }}
                       displayEmpty
+                      aria-label="Filter posts by wall type"
                       sx={{ fontSize: '0.875rem', fontWeight: 500 }}
                     >
                       <MenuItem value="all">All Walls</MenuItem>
