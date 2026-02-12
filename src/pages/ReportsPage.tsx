@@ -78,9 +78,9 @@ export const ReportsPage: React.FC = () => {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {
       // When switching to a new field, use desc for dates and asc for others
-      setSortBy(field);
       setSortOrder(field === 'createdAt' ? 'desc' : 'asc');
     }
+    setSortBy(field);
     setPage(0);
   };
 
