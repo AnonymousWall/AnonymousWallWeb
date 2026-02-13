@@ -1,30 +1,3 @@
-## Admin API Documentation
-
-### Overview
-
-The Admin API provides endpoints for moderators and administrators to manage users, moderate content, and handle reports. All admin endpoints are protected with role-based access control (RBAC).
-
-**Access Requirements:**
-
-- 🔐 **Authentication**: Valid JWT token required
-- 🛡️ **Authorization**: ADMIN or MODERATOR role required
-- ⚠️ Regular users (USER role) will receive `403 Forbidden`
-- ⚠️ Unauthenticated requests will receive `401 Unauthorized`
-
-**How to Grant Admin Access:**
-
-```sql
--- Make a user an admin
-UPDATE users SET role = 'ADMIN' WHERE email = 'admin@example.com';
-
--- Make a user a moderator
-UPDATE users SET role = 'MODERATOR' WHERE email = 'moderator@example.com';
-```
-
-**Note:** After updating the role in the database, the user must log in again to get a new JWT token with the updated role.
-
----
-
 ### Admin User Management Endpoints
 
 #### 1. List All Users
@@ -136,6 +109,117 @@ Response: 200 OK
     "message": "User unblocked successfully"
 }
 ```
+
+**Access:** ADMIN or MODERATOR
+
+#### 5. Get User's Posts
+
+```http
+GET /api/v1/admin/users/{userId}/posts?page=1&limit=20
+Authorization: Bearer {admin-jwt-token}
+
+Response: 200 OK
+{
+    "data": [
+        {
+            "id": "uuid",
+            "userId": "uuid",
+            "profileName": "Anonymous",
+            "title": "Post Title",
+            "content": "Post content...",
+            "wall": "campus",
+            "schoolDomain": "harvard.edu",
+            "likeCount": 42,
+            "commentCount": 15,
+            "hidden": false,
+            "createdAt": "2026-01-28T...",
+            "updatedAt": "2026-01-28T..."
+        }
+    ],
+    "pagination": {
+        "page": 1,
+        "limit": 20,
+        "total": 50,
+        "totalPages": 3
+    }
+}
+```
+
+**Query Parameters:**
+
+- `page` (default: 1) - Page number (1-based)
+- `limit` (default: 20, max: 100) - Posts per page
+- `sortBy` (optional) - Sort field: `createdAt`, `likeCount`, `commentCount`, `userId`
+- `sortOrder` (optional, default: desc) - Sort order: `asc` or `desc`
+
+**Examples:**
+
+```http
+# Get all posts by a user sorted by likes
+GET /api/v1/admin/users/{userId}/posts?sortBy=likeCount&sortOrder=desc
+
+# Get recent posts by a user
+GET /api/v1/admin/users/{userId}/posts?sortBy=createdAt&sortOrder=desc
+```
+
+**Notes:**
+
+- Returns all posts created by the specified user, including hidden (soft-deleted) posts
+- Useful for investigating user activity or content patterns
+- More convenient than using `/admin/posts?userId={userId}` when focusing on a single user
+
+**Access:** ADMIN or MODERATOR
+
+#### 6. Get User's Comments
+
+```http
+GET /api/v1/admin/users/{userId}/comments?page=1&limit=20
+Authorization: Bearer {admin-jwt-token}
+
+Response: 200 OK
+{
+    "data": [
+        {
+            "id": "uuid",
+            "postId": "uuid",
+            "userId": "uuid",
+            "profileName": "Anonymous",
+            "text": "Comment text...",
+            "hidden": false,
+            "createdAt": "2026-01-28T..."
+        }
+    ],
+    "pagination": {
+        "page": 1,
+        "limit": 20,
+        "total": 120,
+        "totalPages": 6
+    }
+}
+```
+
+**Query Parameters:**
+
+- `page` (default: 1) - Page number (1-based)
+- `limit` (default: 20, max: 100) - Comments per page
+- `sortBy` (optional) - Sort field: `createdAt`, `userId`
+- `sortOrder` (optional, default: desc) - Sort order: `asc` or `desc`
+
+**Examples:**
+
+```http
+# Get all comments by a user sorted by newest first
+GET /api/v1/admin/users/{userId}/comments?sortBy=createdAt&sortOrder=desc
+
+# Get paginated comments by a user
+GET /api/v1/admin/users/{userId}/comments?page=2&limit=50
+```
+
+**Notes:**
+
+- Returns all comments created by the specified user, including hidden (soft-deleted) comments
+- Useful for investigating user activity, comment patterns, or reviewing moderation history
+- More convenient than using `/admin/comments?userId={userId}` when focusing on a single user
 
 **Access:** ADMIN or MODERATOR
 
@@ -573,14 +657,3 @@ Response: 200 OK
     "message": "School domain deleted successfully"
 }
 ```
-
-**Description:** Remove a school domain from the approved list. This prevents new registrations from that domain but doesn't affect existing users.
-
-**Access:** ADMIN only
-
-**Important Notes:**
-
-- Only ADMIN role can manage school domains (not MODERATOR)
-- Deleting a domain doesn't delete existing users from that domain
-- Domain validation ensures proper email domain format (e.g., "example.edu")
-- Duplicate domains are prevented
