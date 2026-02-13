@@ -120,6 +120,7 @@ export const ReportsPage: React.FC = () => {
                     <TableRow>
                       <TableCell>Post ID</TableCell>
                       <TableCell>Reporter ID</TableCell>
+                      <TableCell>Reported User ID</TableCell>
                       <TableCell>Reason</TableCell>
                       <TableCell>
                         <TableSortLabel
@@ -135,7 +136,7 @@ export const ReportsPage: React.FC = () => {
                   <TableBody>
                     {!reports || reports.postReports.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={4} align="center">
+                        <TableCell colSpan={5} align="center">
                           No post reports found
                         </TableCell>
                       </TableRow>
@@ -150,6 +151,11 @@ export const ReportsPage: React.FC = () => {
                           <TableCell>
                             <Typography variant="body2" noWrap sx={{ maxWidth: 200 }}>
                               {report.reporterUserId}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2" noWrap sx={{ maxWidth: 200 }}>
+                              {report.reportedUserId}
                             </Typography>
                           </TableCell>
                           <TableCell>
@@ -175,6 +181,7 @@ export const ReportsPage: React.FC = () => {
                     <TableRow>
                       <TableCell>Comment ID</TableCell>
                       <TableCell>Reporter ID</TableCell>
+                      <TableCell>Reported User ID</TableCell>
                       <TableCell>Reason</TableCell>
                       <TableCell>
                         <TableSortLabel
@@ -190,7 +197,7 @@ export const ReportsPage: React.FC = () => {
                   <TableBody>
                     {!reports || reports.commentReports.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={4} align="center">
+                        <TableCell colSpan={5} align="center">
                           No comment reports found
                         </TableCell>
                       </TableRow>
@@ -205,6 +212,11 @@ export const ReportsPage: React.FC = () => {
                           <TableCell>
                             <Typography variant="body2" noWrap sx={{ maxWidth: 200 }}>
                               {report.reporterUserId}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2" noWrap sx={{ maxWidth: 200 }}>
+                              {report.reportedUserId}
                             </Typography>
                           </TableCell>
                           <TableCell>
