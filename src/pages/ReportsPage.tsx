@@ -45,6 +45,18 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
+// Shared link styling for clickable IDs
+const clickableLinkStyle = {
+  textDecoration: 'none',
+  cursor: 'pointer',
+  '&:hover': { textDecoration: 'underline' },
+  maxWidth: 200,
+  display: 'block',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+};
+
 export const ReportsPage: React.FC = () => {
   const navigate = useNavigate();
   const [page, setPage] = useState(0);
@@ -151,16 +163,7 @@ export const ReportsPage: React.FC = () => {
                               component="button"
                               variant="body2"
                               onClick={() => navigate(ROUTES.POST_DETAIL(report.postId))}
-                              sx={{
-                                textDecoration: 'none',
-                                cursor: 'pointer',
-                                '&:hover': { textDecoration: 'underline' },
-                                maxWidth: 200,
-                                display: 'block',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                              }}
+                              sx={clickableLinkStyle}
                             >
                               {report.postId}
                             </Link>
@@ -170,16 +173,7 @@ export const ReportsPage: React.FC = () => {
                               component="button"
                               variant="body2"
                               onClick={() => navigate(ROUTES.USER_DETAIL(report.reporterUserId))}
-                              sx={{
-                                textDecoration: 'none',
-                                cursor: 'pointer',
-                                '&:hover': { textDecoration: 'underline' },
-                                maxWidth: 200,
-                                display: 'block',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                              }}
+                              sx={clickableLinkStyle}
                             >
                               {report.reporterUserId}
                             </Link>
@@ -189,16 +183,7 @@ export const ReportsPage: React.FC = () => {
                               component="button"
                               variant="body2"
                               onClick={() => navigate(ROUTES.USER_DETAIL(report.reportedUserId))}
-                              sx={{
-                                textDecoration: 'none',
-                                cursor: 'pointer',
-                                '&:hover': { textDecoration: 'underline' },
-                                maxWidth: 200,
-                                display: 'block',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                              }}
+                              sx={clickableLinkStyle}
                             >
                               {report.reportedUserId}
                             </Link>
@@ -254,16 +239,7 @@ export const ReportsPage: React.FC = () => {
                               component="button"
                               variant="body2"
                               onClick={() => navigate(ROUTES.COMMENT_DETAIL(report.commentId))}
-                              sx={{
-                                textDecoration: 'none',
-                                cursor: 'pointer',
-                                '&:hover': { textDecoration: 'underline' },
-                                maxWidth: 200,
-                                display: 'block',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                              }}
+                              sx={clickableLinkStyle}
                             >
                               {report.commentId}
                             </Link>
@@ -273,16 +249,7 @@ export const ReportsPage: React.FC = () => {
                               component="button"
                               variant="body2"
                               onClick={() => navigate(ROUTES.USER_DETAIL(report.reporterUserId))}
-                              sx={{
-                                textDecoration: 'none',
-                                cursor: 'pointer',
-                                '&:hover': { textDecoration: 'underline' },
-                                maxWidth: 200,
-                                display: 'block',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                              }}
+                              sx={clickableLinkStyle}
                             >
                               {report.reporterUserId}
                             </Link>
@@ -292,16 +259,7 @@ export const ReportsPage: React.FC = () => {
                               component="button"
                               variant="body2"
                               onClick={() => navigate(ROUTES.USER_DETAIL(report.reportedUserId))}
-                              sx={{
-                                textDecoration: 'none',
-                                cursor: 'pointer',
-                                '&:hover': { textDecoration: 'underline' },
-                                maxWidth: 200,
-                                display: 'block',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                              }}
+                              sx={clickableLinkStyle}
                             >
                               {report.reportedUserId}
                             </Link>
