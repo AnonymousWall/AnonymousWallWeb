@@ -1,3 +1,30 @@
+## Admin API Documentation
+
+### Overview
+
+The Admin API provides endpoints for moderators and administrators to manage users, moderate content, and handle reports. All admin endpoints are protected with role-based access control (RBAC).
+
+**Access Requirements:**
+
+- 🔐 **Authentication**: Valid JWT token required
+- 🛡️ **Authorization**: ADMIN or MODERATOR role required
+- ⚠️ Regular users (USER role) will receive `403 Forbidden`
+- ⚠️ Unauthenticated requests will receive `401 Unauthorized`
+
+**How to Grant Admin Access:**
+
+```sql
+-- Make a user an admin
+UPDATE users SET role = 'ADMIN' WHERE email = 'admin@example.com';
+
+-- Make a user a moderator
+UPDATE users SET role = 'MODERATOR' WHERE email = 'moderator@example.com';
+```
+
+**Note:** After updating the role in the database, the user must log in again to get a new JWT token with the updated role.
+
+---
+
 ### Admin User Management Endpoints
 
 #### 1. List All Users
@@ -178,7 +205,42 @@ GET /api/v1/admin/posts?hidden=true
 
 **Access:** ADMIN or MODERATOR
 
-#### 2. Delete Post (Soft Delete)
+#### 2. Get Post by ID
+
+```http
+GET /api/v1/admin/posts/{postId}
+Authorization: Bearer {admin-jwt-token}
+
+Response: 200 OK
+{
+    "id": "uuid",
+    "userId": "uuid",
+    "profileName": "Anonymous",
+    "title": "Post Title",
+    "content": "Post content...",
+    "wall": "campus",
+    "schoolDomain": "harvard.edu",
+    "likeCount": 42,
+    "commentCount": 15,
+    "hidden": false,
+    "createdAt": "2026-01-28T...",
+    "updatedAt": "2026-01-28T..."
+}
+```
+
+**Effect:**
+
+- Retrieves a specific post by its UUID
+- Returns all post details including hidden status
+- Useful for investigating reported posts or reviewing specific content
+
+**Error Responses:**
+
+- `404 Not Found` - Post with specified ID does not exist
+
+**Access:** ADMIN or MODERATOR
+
+#### 3. Delete Post (Soft Delete)
 
 ```http
 DELETE /api/v1/admin/posts/{postId}
@@ -199,7 +261,7 @@ Response: 200 OK
 
 **Access:** ADMIN or MODERATOR
 
-#### 3. Get Posts by Wall Type with Sorting
+#### 4. Get Posts by Wall Type with Sorting
 
 ```http
 GET /api/v1/admin/posts/by-wall?wall=national&sortBy=NEWEST&page=1&limit=20
@@ -331,7 +393,37 @@ GET /api/v1/admin/comments?hidden=true
 
 **Access:** ADMIN or MODERATOR
 
-#### 2. Delete Comment (Soft Delete)
+#### 2. Get Comment by ID
+
+```http
+GET /api/v1/admin/comments/{commentId}
+Authorization: Bearer {admin-jwt-token}
+
+Response: 200 OK
+{
+    "id": "uuid",
+    "postId": "uuid",
+    "userId": "uuid",
+    "profileName": "Anonymous",
+    "text": "Comment text...",
+    "hidden": false,
+    "createdAt": "2026-01-28T..."
+}
+```
+
+**Effect:**
+
+- Retrieves a specific comment by its UUID
+- Returns all comment details including hidden status
+- Useful for investigating reported comments or reviewing specific content
+
+**Error Responses:**
+
+- `404 Not Found` - Comment with specified ID does not exist
+
+**Access:** ADMIN or MODERATOR
+
+#### 3. Delete Comment (Soft Delete)
 
 ```http
 DELETE /api/v1/admin/comments/{commentId}
@@ -492,5 +584,3 @@ Response: 200 OK
 - Deleting a domain doesn't delete existing users from that domain
 - Domain validation ensures proper email domain format (e.g., "example.edu")
 - Duplicate domains are prevented
-
----
