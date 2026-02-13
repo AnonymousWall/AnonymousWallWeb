@@ -44,6 +44,7 @@ export interface PostReport {
   id: string;
   postId: string;
   reporterUserId: string;
+  reportedUserId: string;
   reason: string;
   createdAt: string;
 }
@@ -52,6 +53,7 @@ export interface CommentReport {
   id: string;
   commentId: string;
   reporterUserId: string;
+  reportedUserId: string;
   reason: string;
   createdAt: string;
 }
