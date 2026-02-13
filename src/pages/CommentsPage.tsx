@@ -31,6 +31,7 @@ import { useComments, useDeleteComment } from '../hooks/useComments';
 import { PAGINATION_CONFIG, SUCCESS_MESSAGES } from '../config/constants';
 import type { Comment } from '../types';
 import { format } from 'date-fns';
+import { UserLink, PostLink } from '../components/EntityLinks';
 
 export const CommentsPage: React.FC = () => {
   const [page, setPage] = useState(0);
@@ -177,11 +178,13 @@ export const CommentsPage: React.FC = () => {
                         {comment.text}
                       </Typography>
                     </TableCell>
-                    <TableCell>{comment.profileName}</TableCell>
                     <TableCell>
-                      <Typography variant="body2" noWrap sx={{ maxWidth: 150 }}>
+                      <UserLink userId={comment.userId}>{comment.profileName}</UserLink>
+                    </TableCell>
+                    <TableCell>
+                      <PostLink postId={comment.postId} sx={{ maxWidth: 150 }}>
                         {comment.postId}
-                      </Typography>
+                      </PostLink>
                     </TableCell>
                     <TableCell>
                       <Chip
