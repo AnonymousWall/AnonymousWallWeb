@@ -31,6 +31,7 @@ import { useUsers, useUser, useBlockUser, useUnblockUser } from '../hooks/useUse
 import { PAGINATION_CONFIG, SUCCESS_MESSAGES } from '../config/constants';
 import type { User } from '../types';
 import { format } from 'date-fns';
+import { UserLink } from '../components/EntityLinks';
 
 export const UsersPage: React.FC = () => {
   const [page, setPage] = useState(0);
@@ -204,7 +205,9 @@ export const UsersPage: React.FC = () => {
               ) : (
                 data.data.map((user) => (
                   <TableRow key={user.id} hover>
-                    <TableCell>{user.email}</TableCell>
+                    <TableCell>
+                      <UserLink userId={user.id}>{user.email}</UserLink>
+                    </TableCell>
                     <TableCell>{user.profileName}</TableCell>
                     <TableCell>{user.schoolDomain}</TableCell>
                     <TableCell>

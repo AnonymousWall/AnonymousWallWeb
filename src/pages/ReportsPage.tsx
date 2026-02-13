@@ -15,13 +15,12 @@ import {
   Alert,
   Tabs,
   Tab,
-  Link,
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
 import { useReports } from '../hooks/useReports';
-import { PAGINATION_CONFIG, ROUTES } from '../config/constants';
+import { PAGINATION_CONFIG } from '../config/constants';
 import type { PostReport, CommentReport } from '../types';
 import { format } from 'date-fns';
+import { UserLink, PostLink, CommentLink } from '../components/EntityLinks';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -45,20 +44,7 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
-// Shared link styling for clickable IDs
-const clickableLinkStyle = {
-  textDecoration: 'none',
-  cursor: 'pointer',
-  '&:hover': { textDecoration: 'underline' },
-  maxWidth: 200,
-  display: 'block',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
-};
-
 export const ReportsPage: React.FC = () => {
-  const navigate = useNavigate();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(PAGINATION_CONFIG.DEFAULT_PAGE_SIZE);
   const [tabValue, setTabValue] = useState(0);
@@ -159,34 +145,17 @@ export const ReportsPage: React.FC = () => {
                       reports.postReports.map((report: PostReport) => (
                         <TableRow key={report.id} hover>
                           <TableCell>
-                            <Link
-                              component="button"
-                              variant="body2"
-                              onClick={() => navigate(ROUTES.POST_DETAIL(report.postId))}
-                              sx={clickableLinkStyle}
-                            >
-                              {report.postId}
-                            </Link>
+                            <PostLink postId={report.postId}>{report.postId}</PostLink>
                           </TableCell>
                           <TableCell>
-                            <Link
-                              component="button"
-                              variant="body2"
-                              onClick={() => navigate(ROUTES.USER_DETAIL(report.reporterUserId))}
-                              sx={clickableLinkStyle}
-                            >
+                            <UserLink userId={report.reporterUserId}>
                               {report.reporterUserId}
-                            </Link>
+                            </UserLink>
                           </TableCell>
                           <TableCell>
-                            <Link
-                              component="button"
-                              variant="body2"
-                              onClick={() => navigate(ROUTES.USER_DETAIL(report.reportedUserId))}
-                              sx={clickableLinkStyle}
-                            >
+                            <UserLink userId={report.reportedUserId}>
                               {report.reportedUserId}
-                            </Link>
+                            </UserLink>
                           </TableCell>
                           <TableCell>
                             <Typography variant="body2" sx={{ maxWidth: 300 }}>
@@ -235,34 +204,19 @@ export const ReportsPage: React.FC = () => {
                       reports.commentReports.map((report: CommentReport) => (
                         <TableRow key={report.id} hover>
                           <TableCell>
-                            <Link
-                              component="button"
-                              variant="body2"
-                              onClick={() => navigate(ROUTES.COMMENT_DETAIL(report.commentId))}
-                              sx={clickableLinkStyle}
-                            >
+                            <CommentLink commentId={report.commentId}>
                               {report.commentId}
-                            </Link>
+                            </CommentLink>
                           </TableCell>
                           <TableCell>
-                            <Link
-                              component="button"
-                              variant="body2"
-                              onClick={() => navigate(ROUTES.USER_DETAIL(report.reporterUserId))}
-                              sx={clickableLinkStyle}
-                            >
+                            <UserLink userId={report.reporterUserId}>
                               {report.reporterUserId}
-                            </Link>
+                            </UserLink>
                           </TableCell>
                           <TableCell>
-                            <Link
-                              component="button"
-                              variant="body2"
-                              onClick={() => navigate(ROUTES.USER_DETAIL(report.reportedUserId))}
-                              sx={clickableLinkStyle}
-                            >
+                            <UserLink userId={report.reportedUserId}>
                               {report.reportedUserId}
-                            </Link>
+                            </UserLink>
                           </TableCell>
                           <TableCell>
                             <Typography variant="body2" sx={{ maxWidth: 300 }}>

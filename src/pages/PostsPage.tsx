@@ -31,6 +31,7 @@ import { usePosts, useDeletePost } from '../hooks/usePosts';
 import { PAGINATION_CONFIG, SUCCESS_MESSAGES } from '../config/constants';
 import type { Post } from '../types';
 import { format } from 'date-fns';
+import { UserLink, PostLink } from '../components/EntityLinks';
 
 export const PostsPage: React.FC = () => {
   const [page, setPage] = useState(0);
@@ -224,9 +225,9 @@ export const PostsPage: React.FC = () => {
                 data.data.map((post) => (
                   <TableRow key={post.id} hover>
                     <TableCell>
-                      <Typography variant="body2" noWrap sx={{ maxWidth: 200 }}>
+                      <PostLink postId={post.id} sx={{ maxWidth: 200 }}>
                         {post.title}
-                      </Typography>
+                      </PostLink>
                     </TableCell>
                     <TableCell>
                       <Chip
@@ -236,7 +237,9 @@ export const PostsPage: React.FC = () => {
                       />
                     </TableCell>
                     <TableCell>{post.schoolDomain || 'N/A'}</TableCell>
-                    <TableCell>{post.profileName}</TableCell>
+                    <TableCell>
+                      <UserLink userId={post.userId}>{post.profileName}</UserLink>
+                    </TableCell>
                     <TableCell>{post.likeCount}</TableCell>
                     <TableCell>{post.commentCount}</TableCell>
                     <TableCell>
