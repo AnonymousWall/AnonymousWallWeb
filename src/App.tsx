@@ -8,8 +8,11 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { UsersPage } from './pages/UsersPage';
+import { UserDetailPage } from './pages/UserDetailPage';
 import { PostsPage } from './pages/PostsPage';
+import { PostDetailPage } from './pages/PostDetailPage';
 import { CommentsPage } from './pages/CommentsPage';
+import { CommentDetailPage } from './pages/CommentDetailPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { SchoolsPage } from './pages/SchoolsPage';
 import { ROUTES } from './config/constants';
@@ -61,8 +64,11 @@ function App() {
             >
               <Route index element={<DashboardPage />} />
               <Route path="users" element={<UsersPage />} />
+              <Route path="users/:id" element={<UserDetailPage />} />
               <Route path="posts" element={<PostsPage />} />
+              <Route path="posts/:id" element={<PostDetailPage />} />
               <Route path="comments" element={<CommentsPage />} />
+              <Route path="comments/:id" element={<CommentDetailPage />} />
               <Route path="reports" element={<ReportsPage />} />
               <Route path="schools" element={<SchoolsPage />} />
             </Route>

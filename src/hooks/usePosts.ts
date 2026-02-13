@@ -22,6 +22,17 @@ export const usePosts = (
 };
 
 /**
+ * Custom hook to fetch a single post
+ */
+export const usePost = (postId: string, enabled = true) => {
+  return useQuery<Post, Error>({
+    queryKey: [QUERY_KEYS.POST, postId],
+    queryFn: () => postService.getPostById(postId),
+    enabled,
+  });
+};
+
+/**
  * Custom hook to delete a post
  */
 export const useDeletePost = () => {

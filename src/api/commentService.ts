@@ -28,6 +28,13 @@ export const commentService = {
   },
 
   /**
+   * Get comment by ID
+   */
+  async getCommentById(commentId: string): Promise<Comment> {
+    return httpClient.get<Comment>(API_ENDPOINTS.ADMIN.COMMENT_BY_ID(commentId));
+  },
+
+  /**
    * Delete comment (soft delete)
    */
   async deleteComment(commentId: string): Promise<{ message: string }> {
