@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { userService } from '../api/userService';
 import { QUERY_KEYS } from '../config/constants';
-import type { User, PaginatedResponse } from '../types';
+import type { User, PaginatedResponse, Post, Comment } from '../types';
 
 /**
  * Custom hook to fetch users
@@ -25,6 +25,42 @@ export const useUser = (userId: string, enabled = true) => {
   return useQuery<User, Error>({
     queryKey: [QUERY_KEYS.USER, userId],
     queryFn: () => userService.getUserById(userId),
+    enabled,
+  });
+};
+
+/**
+ * Custom hook to fetch posts by user ID
+ */
+export const useUserPosts = (
+  userId: string,
+  page: number,
+  limit: number,
+  sortBy?: string,
+  sortOrder?: 'asc' | 'desc',
+  enabled = true
+) => {
+  return useQuery<PaginatedResponse<Post>, Error>({
+    queryKey: [QUERY_KEYS.USER_POSTS, userId, page, limit, sortBy, sortOrder],
+    queryFn: () => userService.getUserPosts(userId, page, limit, sortBy, sortOrder),
+    enabled,
+  });
+};
+
+/**
+ * Custom hook to fetch comments by user ID
+ */
+export const useUserComments = (
+  userId: string,
+  page: number,
+  limit: number,
+  sortBy?: string,
+  sortOrder?: 'asc' | 'desc',
+  enabled = true
+) => {
+  return useQuery<PaginatedResponse<Comment>, Error>({
+    queryKey: [QUERY_KEYS.USER_COMMENTS, userId, page, limit, sortBy, sortOrder],
+    queryFn: () => userService.getUserComments(userId, page, limit, sortBy, sortOrder),
     enabled,
   });
 };

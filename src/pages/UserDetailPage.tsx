@@ -25,6 +25,8 @@ import {
 import { useUser, useBlockUser, useUnblockUser } from '../hooks/useUsers';
 import { SUCCESS_MESSAGES } from '../config/constants';
 import { format } from 'date-fns';
+import { UserPostsTable } from '../components/UserPostsTable';
+import { UserCommentsTable } from '../components/UserCommentsTable';
 
 export const UserDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -246,6 +248,12 @@ export const UserDetailPage: React.FC = () => {
           </Card>
         </Box>
       </Paper>
+
+      {/* User Posts Section */}
+      {id && <UserPostsTable userId={id} />}
+
+      {/* User Comments Section */}
+      {id && <UserCommentsTable userId={id} />}
 
       {/* Block/Unblock Confirmation Dialog */}
       <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>

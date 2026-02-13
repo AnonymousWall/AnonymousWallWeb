@@ -1,6 +1,6 @@
 import { httpClient } from '../api/httpClient';
 import { API_ENDPOINTS } from '../config/constants';
-import type { User, PaginatedResponse } from '../types';
+import type { User, PaginatedResponse, Post, Comment } from '../types';
 
 /**
  * User Service
@@ -44,5 +44,41 @@ export const userService = {
    */
   async unblockUser(userId: string): Promise<{ message: string }> {
     return httpClient.post<{ message: string }>(API_ENDPOINTS.ADMIN.UNBLOCK_USER(userId));
+  },
+
+  /**
+   * Get posts by user ID
+   */
+  async getUserPosts(
+    userId: string,
+    page: number,
+    limit: number,
+    sortBy?: string,
+    sortOrder?: 'asc' | 'desc'
+  ): Promise<PaginatedResponse<Post>> {
+    return httpClient.get<PaginatedResponse<Post>>(API_ENDPOINTS.ADMIN.USER_POSTS(userId), {
+      page,
+      limit,
+      sortBy,
+      sortOrder,
+    });
+  },
+
+  /**
+   * Get comments by user ID
+   */
+  async getUserComments(
+    userId: string,
+    page: number,
+    limit: number,
+    sortBy?: string,
+    sortOrder?: 'asc' | 'desc'
+  ): Promise<PaginatedResponse<Comment>> {
+    return httpClient.get<PaginatedResponse<Comment>>(API_ENDPOINTS.ADMIN.USER_COMMENTS(userId), {
+      page,
+      limit,
+      sortBy,
+      sortOrder,
+    });
   },
 };

@@ -60,6 +60,8 @@ export const API_ENDPOINTS = {
     USER_BY_ID: (id: string) => `/admin/users/${id}`,
     BLOCK_USER: (id: string) => `/admin/users/${id}/block`,
     UNBLOCK_USER: (id: string) => `/admin/users/${id}/unblock`,
+    USER_POSTS: (id: string) => `/admin/users/${id}/posts`,
+    USER_COMMENTS: (id: string) => `/admin/users/${id}/comments`,
     POSTS: '/admin/posts',
     POST_BY_ID: (id: string) => `/admin/posts/${id}`,
     DELETE_POST: (id: string) => `/admin/posts/${id}`,
@@ -76,6 +78,8 @@ export const API_ENDPOINTS = {
 export const QUERY_KEYS = {
   USERS: 'users',
   USER: 'user',
+  USER_POSTS: 'user-posts',
+  USER_COMMENTS: 'user-comments',
   POSTS: 'posts',
   POST: 'post',
   COMMENTS: 'comments',
