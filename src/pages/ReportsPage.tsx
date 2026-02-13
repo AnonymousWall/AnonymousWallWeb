@@ -13,10 +13,6 @@ import {
   TableSortLabel,
   CircularProgress,
   Alert,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Tabs,
   Tab,
 } from '@mui/material';
@@ -51,17 +47,15 @@ export const ReportsPage: React.FC = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(PAGINATION_CONFIG.DEFAULT_PAGE_SIZE);
   const [tabValue, setTabValue] = useState(0);
-  const [reportType, setReportType] = useState<'all' | 'post' | 'comment'>('all');
   const [sortBy, setSortBy] = useState<string>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  // Fetch reports with pagination, filter, and sorting
-  const type = reportType === 'all' ? undefined : reportType;
+  // Fetch reports with pagination and sorting
   const {
     data: reports,
     isLoading,
     error,
-  } = useReports(page + 1, rowsPerPage, type, sortBy, sortOrder);
+  } = useReports(page + 1, rowsPerPage, undefined, sortBy, sortOrder);
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
@@ -90,30 +84,13 @@ export const ReportsPage: React.FC = () => {
 
   return (
     <Box>
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box>
-          <Typography variant="h4" fontWeight="bold" gutterBottom>
-            Report Management
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            View and manage reported posts and comments
-          </Typography>
-        </Box>
-        <FormControl sx={{ minWidth: 150 }}>
-          <InputLabel>Filter</InputLabel>
-          <Select
-            value={reportType}
-            label="Filter"
-            onChange={(e) => {
-              setReportType(e.target.value as 'all' | 'post' | 'comment');
-              setPage(0);
-            }}
-          >
-            <MenuItem value="all">All Reports</MenuItem>
-            <MenuItem value="post">Post Reports</MenuItem>
-            <MenuItem value="comment">Comment Reports</MenuItem>
-          </Select>
-        </FormControl>
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h4" fontWeight="bold" gutterBottom>
+          Report Management
+        </Typography>
+        <Typography variant="body1" color="text.secondary">
+          View and manage reported posts and comments
+        </Typography>
       </Box>
 
       {error && (
