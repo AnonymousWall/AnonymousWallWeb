@@ -35,13 +35,15 @@ export const UserLink: React.FC<UserLinkProps> = ({
   onClick,
 }) => {
   const displayText = displayName || children || userId;
+  // For aria-label and title, use string values only
+  const accessibilityText = displayName || (typeof children === 'string' ? children : userId);
 
   return (
     <EntityLink
       to={ROUTES.USER_DETAIL(userId)}
       sx={sx}
-      ariaLabel={`View user details: ${displayText}`}
-      title={`View user: ${displayText}`}
+      ariaLabel={`View user details: ${accessibilityText}`}
+      title={`View user: ${accessibilityText}`}
       onClick={onClick}
     >
       {displayText}

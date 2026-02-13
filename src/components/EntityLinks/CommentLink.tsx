@@ -35,13 +35,15 @@ export const CommentLink: React.FC<CommentLinkProps> = ({
   onClick,
 }) => {
   const displayContent = displayText || children || commentId;
+  // For aria-label and title, use string values only
+  const accessibilityText = displayText || (typeof children === 'string' ? children : commentId);
 
   return (
     <EntityLink
       to={ROUTES.COMMENT_DETAIL(commentId)}
       sx={sx}
-      ariaLabel={`View comment details: ${displayContent}`}
-      title={`View comment: ${displayContent}`}
+      ariaLabel={`View comment details: ${accessibilityText}`}
+      title={`View comment: ${accessibilityText}`}
       onClick={onClick}
     >
       {displayContent}

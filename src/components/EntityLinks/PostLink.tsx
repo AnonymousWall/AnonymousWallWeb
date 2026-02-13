@@ -35,13 +35,15 @@ export const PostLink: React.FC<PostLinkProps> = ({
   onClick,
 }) => {
   const displayContent = displayText || children || postId;
+  // For aria-label and title, use string values only
+  const accessibilityText = displayText || (typeof children === 'string' ? children : postId);
 
   return (
     <EntityLink
       to={ROUTES.POST_DETAIL(postId)}
       sx={sx}
-      ariaLabel={`View post details: ${displayContent}`}
-      title={`View post: ${displayContent}`}
+      ariaLabel={`View post details: ${accessibilityText}`}
+      title={`View post: ${accessibilityText}`}
       onClick={onClick}
     >
       {displayContent}
