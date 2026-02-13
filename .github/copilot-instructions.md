@@ -369,6 +369,7 @@ Response: 200 OK
             "id": "uuid",
             "postId": "uuid",
             "reporterUserId": "uuid",
+            "reportedUserId": "uuid",
             "reason": "Inappropriate content",
             "createdAt": "2026-01-28T..."
         }
@@ -378,6 +379,7 @@ Response: 200 OK
             "id": "uuid",
             "commentId": "uuid",
             "reporterUserId": "uuid",
+            "reportedUserId": "uuid",
             "reason": "Spam",
             "createdAt": "2026-01-28T..."
         }
@@ -490,3 +492,5 @@ Response: 200 OK
 - Deleting a domain doesn't delete existing users from that domain
 - Domain validation ensures proper email domain format (e.g., "example.edu")
 - Duplicate domains are prevented
+
+---
