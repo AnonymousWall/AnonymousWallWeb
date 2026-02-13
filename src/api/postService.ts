@@ -32,6 +32,13 @@ export const postService = {
   },
 
   /**
+   * Get post by ID
+   */
+  async getPostById(postId: string): Promise<Post> {
+    return httpClient.get<Post>(API_ENDPOINTS.ADMIN.POST_BY_ID(postId));
+  },
+
+  /**
    * Delete post (soft delete)
    */
   async deletePost(postId: string): Promise<{ message: string }> {

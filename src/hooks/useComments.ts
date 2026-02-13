@@ -20,6 +20,17 @@ export const useComments = (
 };
 
 /**
+ * Custom hook to fetch a single comment
+ */
+export const useComment = (commentId: string, enabled = true) => {
+  return useQuery<Comment, Error>({
+    queryKey: [QUERY_KEYS.COMMENT, commentId],
+    queryFn: () => commentService.getCommentById(commentId),
+    enabled,
+  });
+};
+
+/**
  * Custom hook to delete a comment
  */
 export const useDeleteComment = () => {
