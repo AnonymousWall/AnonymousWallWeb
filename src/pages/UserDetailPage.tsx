@@ -27,6 +27,9 @@ import { SUCCESS_MESSAGES } from '../config/constants';
 import { format } from 'date-fns';
 import { UserPostsTable } from '../components/UserPostsTable';
 import { UserCommentsTable } from '../components/UserCommentsTable';
+import { UserInternshipsTable } from '../components/UserInternshipsTable';
+import { UserMarketplacesTable } from '../components/UserMarketplacesTable';
+import { UserConversationsTable } from '../components/UserConversationsTable';
 
 export const UserDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -254,6 +257,15 @@ export const UserDetailPage: React.FC = () => {
 
       {/* User Comments Section */}
       {id && <UserCommentsTable userId={id} />}
+
+      {/* User Internships Section */}
+      {id && <UserInternshipsTable userId={id} />}
+
+      {/* User Marketplace Items Section */}
+      {id && <UserMarketplacesTable userId={id} />}
+
+      {/* User Conversations Section */}
+      {id && <UserConversationsTable userId={id} />}
 
       {/* Block/Unblock Confirmation Dialog */}
       <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>

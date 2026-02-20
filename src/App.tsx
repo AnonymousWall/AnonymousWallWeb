@@ -15,6 +15,12 @@ import { CommentsPage } from './pages/CommentsPage';
 import { CommentDetailPage } from './pages/CommentDetailPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { SchoolsPage } from './pages/SchoolsPage';
+import { InternshipsPage } from './pages/InternshipsPage';
+import { InternshipDetailPage } from './pages/InternshipDetailPage';
+import { MarketplacesPage } from './pages/MarketplacesPage';
+import { MarketplaceDetailPage } from './pages/MarketplaceDetailPage';
+import { ConversationsPage } from './pages/ConversationsPage';
+import { ConversationDetailPage } from './pages/ConversationDetailPage';
 import { ROUTES } from './config/constants';
 
 // Create QueryClient instance
@@ -71,6 +77,12 @@ function App() {
               <Route path="comments/:id" element={<CommentDetailPage />} />
               <Route path="reports" element={<ReportsPage />} />
               <Route path="schools" element={<SchoolsPage />} />
+              <Route path="internships" element={<InternshipsPage />} />
+              <Route path="internships/:id" element={<InternshipDetailPage />} />
+              <Route path="marketplaces" element={<MarketplacesPage />} />
+              <Route path="marketplaces/:id" element={<MarketplaceDetailPage />} />
+              <Route path="conversations" element={<ConversationsPage />} />
+              <Route path="conversations/:id" element={<ConversationDetailPage />} />
             </Route>
             <Route path="*" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
           </Routes>

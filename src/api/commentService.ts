@@ -2,21 +2,14 @@ import { httpClient } from '../api/httpClient';
 import { API_ENDPOINTS } from '../config/constants';
 import type { Comment, PaginatedResponse } from '../types';
 
-/**
- * Comment Service
- * Handles comment management API calls
- */
-
 export const commentService = {
-  /**
-   * Get paginated list of comments
-   */
   async getComments(
     page: number,
     limit: number,
     hidden?: boolean,
     sortBy?: string,
-    sortOrder?: 'asc' | 'desc'
+    sortOrder?: 'asc' | 'desc',
+    userId?: string
   ): Promise<PaginatedResponse<Comment>> {
     return httpClient.get<PaginatedResponse<Comment>>(API_ENDPOINTS.ADMIN.COMMENTS, {
       page,
@@ -24,20 +17,19 @@ export const commentService = {
       hidden,
       sortBy,
       sortOrder,
+      userId,
     });
   },
 
-  /**
-   * Get comment by ID
-   */
   async getCommentById(commentId: string): Promise<Comment> {
     return httpClient.get<Comment>(API_ENDPOINTS.ADMIN.COMMENT_BY_ID(commentId));
   },
 
-  /**
-   * Delete comment (soft delete)
-   */
-  async deleteComment(commentId: string): Promise<{ message: string }> {
-    return httpClient.delete<{ message: string }>(API_ENDPOINTS.ADMIN.DELETE_COMMENT(commentId));
+  async hideComment(commentId: string): Promise<{ message: string }> {
+    return httpClient.put<{ message: string }>(API_ENDPOINTS.ADMIN.HIDE_COMMENT(commentId));
+  },
+
+  async unhideComment(commentId: string): Promise<{ message: string }> {
+    return httpClient.put<{ message: string }>(API_ENDPOINTS.ADMIN.UNHIDE_COMMENT(commentId));
   },
 };

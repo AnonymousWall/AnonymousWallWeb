@@ -46,6 +46,7 @@ export interface PostReport {
   reporterUserId: string;
   reportedUserId: string;
   reason: string;
+  status?: 'PENDING' | 'RESOLVED' | 'REJECTED';
   createdAt: string;
 }
 
@@ -55,6 +56,7 @@ export interface CommentReport {
   reporterUserId: string;
   reportedUserId: string;
   reason: string;
+  status?: 'PENDING' | 'RESOLVED' | 'REJECTED';
   createdAt: string;
 }
 
@@ -110,4 +112,49 @@ export interface SchoolDomain {
 export interface CreateSchoolDomainRequest {
   domain: string;
   schoolName: string;
+}
+
+// Internship types
+export interface Internship {
+  id: string;
+  userId: string;
+  profileName: string;
+  title: string;
+  company: string;
+  description: string;
+  location: string;
+  commentCount: number;
+  hidden: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Marketplace types
+export interface MarketplaceItem {
+  id: string;
+  userId: string;
+  profileName: string;
+  title: string;
+  description: string;
+  price: number;
+  commentCount: number;
+  hidden: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Conversation types
+export interface Conversation {
+  id: string;
+  participantIds: string[];
+  lastMessageAt: string;
+  createdAt: string;
+}
+
+export interface Message {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  content: string;
+  createdAt: string;
 }

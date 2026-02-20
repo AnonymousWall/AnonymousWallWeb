@@ -3,9 +3,6 @@ import { postService } from '../api/postService';
 import { QUERY_KEYS } from '../config/constants';
 import type { Post, PaginatedResponse } from '../types';
 
-/**
- * Custom hook to fetch posts
- */
 export const usePosts = (
   page: number,
   limit: number,
@@ -21,9 +18,6 @@ export const usePosts = (
   });
 };
 
-/**
- * Custom hook to fetch a single post
- */
 export const usePost = (postId: string, enabled = true) => {
   return useQuery<Post, Error>({
     queryKey: [QUERY_KEYS.POST, postId],
@@ -32,17 +26,26 @@ export const usePost = (postId: string, enabled = true) => {
   });
 };
 
-/**
- * Custom hook to delete a post
- */
-export const useDeletePost = () => {
+export const useHidePost = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (postId: string) => postService.deletePost(postId),
-    onSuccess: () => {
-      // Invalidate posts query to refetch
+    mutationFn: (postId: string) => postService.hidePost(postId),
+    onSuccess: (_data, postId) => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.POSTS] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.POST, postId] });
+    },
+  });
+};
+
+export const useUnhidePost = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (postId: string) => postService.unhidePost(postId),
+    onSuccess: (_data, postId) => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.POSTS] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.POST, postId] });
     },
   });
 };

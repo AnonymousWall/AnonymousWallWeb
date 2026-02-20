@@ -30,16 +30,20 @@ import {
   Visibility as VisibilityIcon,
   VisibilityOff as VisibilityOffIcon,
 } from '@mui/icons-material';
-import { useComments, useHideComment, useUnhideComment } from '../hooks/useComments';
-import { PAGINATION_CONFIG, SUCCESS_MESSAGES } from '../config/constants';
-import type { Comment } from '../types';
+import {
+  useMarketplaces,
+  useHideMarketplace,
+  useUnhideMarketplace,
+} from '../hooks/useMarketplaces';
+import { PAGINATION_CONFIG, SUCCESS_MESSAGES, ROUTES } from '../config/constants';
+import type { MarketplaceItem } from '../types';
 import { format } from 'date-fns';
-import { UserLink, PostLink } from '../components/EntityLinks';
+import { UserLink, EntityLink } from '../components/EntityLinks';
 
-export const CommentsPage: React.FC = () => {
+export const MarketplacesPage: React.FC = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(PAGINATION_CONFIG.DEFAULT_PAGE_SIZE);
-  const [selectedComment, setSelectedComment] = useState<Comment | null>(null);
+  const [selectedItem, setSelectedItem] = useState<MarketplaceItem | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState<'hide' | 'unhide'>('hide');
@@ -49,14 +53,19 @@ export const CommentsPage: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const hidden = hiddenFilter === 'all' ? undefined : hiddenFilter === 'hidden';
-  const { data, isLoading, error } = useComments(page + 1, rowsPerPage, hidden, sortBy, sortOrder);
+  const { data, isLoading, error } = useMarketplaces(
+    page + 1,
+    rowsPerPage,
+    undefined,
+    hidden,
+    sortBy,
+    sortOrder
+  );
 
-  const hideCommentMutation = useHideComment();
-  const unhideCommentMutation = useUnhideComment();
+  const hideMarketplaceMutation = useHideMarketplace();
+  const unhideMarketplaceMutation = useUnhideMarketplace();
 
-  const handleChangePage = (_event: unknown, newPage: number) => {
-    setPage(newPage);
-  };
+  const handleChangePage = (_event: unknown, newPage: number) => setPage(newPage);
 
   const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
     setRowsPerPage(parseInt(event.target.value, 10));
@@ -73,27 +82,27 @@ export const CommentsPage: React.FC = () => {
     setPage(0);
   };
 
-  const handleShowDetails = (comment: Comment) => {
-    setSelectedComment(comment);
+  const handleShowDetails = (item: MarketplaceItem) => {
+    setSelectedItem(item);
     setDetailsOpen(true);
   };
 
-  const handleActionClick = (comment: Comment, action: 'hide' | 'unhide') => {
-    setSelectedComment(comment);
+  const handleActionClick = (item: MarketplaceItem, action: 'hide' | 'unhide') => {
+    setSelectedItem(item);
     setConfirmAction(action);
     setConfirmOpen(true);
   };
 
   const handleConfirm = async () => {
-    if (!selectedComment) return;
+    if (!selectedItem) return;
 
     try {
       if (confirmAction === 'hide') {
-        await hideCommentMutation.mutateAsync(selectedComment.id);
-        setSuccessMessage(SUCCESS_MESSAGES.COMMENT_HIDDEN);
+        await hideMarketplaceMutation.mutateAsync(selectedItem.id);
+        setSuccessMessage(SUCCESS_MESSAGES.MARKETPLACE_HIDDEN);
       } else {
-        await unhideCommentMutation.mutateAsync(selectedComment.id);
-        setSuccessMessage(SUCCESS_MESSAGES.COMMENT_UNHIDDEN);
+        await unhideMarketplaceMutation.mutateAsync(selectedItem.id);
+        setSuccessMessage(SUCCESS_MESSAGES.MARKETPLACE_UNHIDDEN);
       }
       setConfirmOpen(false);
       setTimeout(() => setSuccessMessage(''), 3000);
@@ -102,17 +111,17 @@ export const CommentsPage: React.FC = () => {
     }
   };
 
-  const isPending = hideCommentMutation.isPending || unhideCommentMutation.isPending;
+  const isPending = hideMarketplaceMutation.isPending || unhideMarketplaceMutation.isPending;
 
   return (
     <Box>
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box>
           <Typography variant="h4" fontWeight="bold" gutterBottom>
-            Comment Moderation
+            Marketplace Moderation
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Manage and moderate comments
+            Manage and moderate marketplace listings
           </Typography>
         </Box>
         <FormControl sx={{ minWidth: 150 }}>
@@ -120,12 +129,9 @@ export const CommentsPage: React.FC = () => {
           <Select
             value={hiddenFilter}
             label="Filter"
-            onChange={(e) => {
-              setHiddenFilter(e.target.value as 'all' | 'visible' | 'hidden');
-              setPage(0);
-            }}
+            onChange={(e) => setHiddenFilter(e.target.value as 'all' | 'visible' | 'hidden')}
           >
-            <MenuItem value="all">All Comments</MenuItem>
+            <MenuItem value="all">All</MenuItem>
             <MenuItem value="visible">Visible Only</MenuItem>
             <MenuItem value="hidden">Hidden Only</MenuItem>
           </Select>
@@ -149,9 +155,34 @@ export const CommentsPage: React.FC = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Comment Text</TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={sortBy === 'title'}
+                    direction={sortBy === 'title' ? sortOrder : 'asc'}
+                    onClick={() => handleSort('title')}
+                  >
+                    Title
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={sortBy === 'price'}
+                    direction={sortBy === 'price' ? sortOrder : 'asc'}
+                    onClick={() => handleSort('price')}
+                  >
+                    Price
+                  </TableSortLabel>
+                </TableCell>
                 <TableCell>Author</TableCell>
-                <TableCell>Post ID</TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={sortBy === 'commentCount'}
+                    direction={sortBy === 'commentCount' ? sortOrder : 'asc'}
+                    onClick={() => handleSort('commentCount')}
+                  >
+                    Comments
+                  </TableSortLabel>
+                </TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell>
                   <TableSortLabel
@@ -168,64 +199,59 @@ export const CommentsPage: React.FC = () => {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} align="center">
+                  <TableCell colSpan={7} align="center">
                     <CircularProgress />
                   </TableCell>
                 </TableRow>
               ) : !data || data.data.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} align="center">
-                    No comments found
+                  <TableCell colSpan={7} align="center">
+                    No marketplace items found
                   </TableCell>
                 </TableRow>
               ) : (
-                data.data.map((comment) => (
-                  <TableRow key={comment.id} hover>
+                data.data.map((item) => (
+                  <TableRow key={item.id} hover>
                     <TableCell>
-                      <Typography variant="body2" noWrap sx={{ maxWidth: 300 }}>
-                        {comment.text}
-                      </Typography>
+                      <EntityLink to={ROUTES.MARKETPLACE_DETAIL(item.id)} sx={{ maxWidth: 200 }}>
+                        {item.title}
+                      </EntityLink>
                     </TableCell>
+                    <TableCell>${item.price.toFixed(2)}</TableCell>
                     <TableCell>
-                      <UserLink userId={comment.userId}>{comment.profileName}</UserLink>
+                      <UserLink userId={item.userId}>{item.profileName}</UserLink>
                     </TableCell>
-                    <TableCell>
-                      <PostLink postId={comment.postId} sx={{ maxWidth: 150 }}>
-                        {comment.postId}
-                      </PostLink>
-                    </TableCell>
+                    <TableCell>{item.commentCount}</TableCell>
                     <TableCell>
                       <Chip
-                        label={comment.hidden ? 'Hidden' : 'Visible'}
+                        label={item.hidden ? 'Hidden' : 'Visible'}
                         size="small"
-                        color={comment.hidden ? 'error' : 'success'}
+                        color={item.hidden ? 'error' : 'success'}
                       />
                     </TableCell>
-                    <TableCell>
-                      {format(new Date(comment.createdAt), 'MMM d, yyyy HH:mm')}
-                    </TableCell>
+                    <TableCell>{format(new Date(item.createdAt), 'MMM d, yyyy HH:mm')}</TableCell>
                     <TableCell align="right">
                       <Tooltip title="View Details">
-                        <IconButton size="small" onClick={() => handleShowDetails(comment)}>
+                        <IconButton size="small" onClick={() => handleShowDetails(item)}>
                           <VisibilityIcon />
                         </IconButton>
                       </Tooltip>
-                      {comment.hidden ? (
-                        <Tooltip title="Unhide Comment">
+                      {item.hidden ? (
+                        <Tooltip title="Unhide">
                           <IconButton
                             size="small"
                             color="success"
-                            onClick={() => handleActionClick(comment, 'unhide')}
+                            onClick={() => handleActionClick(item, 'unhide')}
                           >
                             <VisibilityIcon />
                           </IconButton>
                         </Tooltip>
                       ) : (
-                        <Tooltip title="Hide Comment">
+                        <Tooltip title="Hide">
                           <IconButton
                             size="small"
                             color="error"
-                            onClick={() => handleActionClick(comment, 'hide')}
+                            onClick={() => handleActionClick(item, 'hide')}
                           >
                             <VisibilityOffIcon />
                           </IconButton>
@@ -251,38 +277,38 @@ export const CommentsPage: React.FC = () => {
         )}
       </Paper>
 
-      {/* Comment Details Dialog */}
+      {/* Details Dialog */}
       <Dialog open={detailsOpen} onClose={() => setDetailsOpen(false)} maxWidth="md" fullWidth>
-        <DialogTitle>Comment Details</DialogTitle>
+        <DialogTitle>Marketplace Item Details</DialogTitle>
         <DialogContent>
-          {selectedComment && (
+          {selectedItem && (
             <Box sx={{ pt: 1 }}>
               <Typography variant="body2" gutterBottom>
-                <strong>ID:</strong> {selectedComment.id}
+                <strong>ID:</strong> {selectedItem.id}
               </Typography>
               <Typography variant="body2" gutterBottom>
-                <strong>Comment Text:</strong>
+                <strong>Title:</strong> {selectedItem.title}
+              </Typography>
+              <Typography variant="body2" gutterBottom>
+                <strong>Price:</strong> ${selectedItem.price.toFixed(2)}
+              </Typography>
+              <Typography variant="body2" gutterBottom>
+                <strong>Description:</strong>
               </Typography>
               <Paper sx={{ p: 2, mb: 2, bgcolor: 'grey.100' }}>
                 <Typography variant="body2" style={{ whiteSpace: 'pre-wrap' }}>
-                  {selectedComment.text}
+                  {selectedItem.description}
                 </Typography>
               </Paper>
               <Typography variant="body2" gutterBottom>
-                <strong>Author:</strong> {selectedComment.profileName}
+                <strong>Author:</strong> {selectedItem.profileName}
               </Typography>
               <Typography variant="body2" gutterBottom>
-                <strong>Author ID:</strong> {selectedComment.userId}
-              </Typography>
-              <Typography variant="body2" gutterBottom>
-                <strong>Post ID:</strong> {selectedComment.postId}
-              </Typography>
-              <Typography variant="body2" gutterBottom>
-                <strong>Status:</strong> {selectedComment.hidden ? 'Hidden' : 'Visible'}
+                <strong>Status:</strong> {selectedItem.hidden ? 'Hidden' : 'Visible'}
               </Typography>
               <Typography variant="body2" gutterBottom>
                 <strong>Created:</strong>{' '}
-                {format(new Date(selectedComment.createdAt), 'MMM d, yyyy HH:mm:ss')}
+                {format(new Date(selectedItem.createdAt), 'MMM d, yyyy HH:mm:ss')}
               </Typography>
             </Box>
           )}
@@ -294,14 +320,11 @@ export const CommentsPage: React.FC = () => {
 
       {/* Confirmation Dialog */}
       <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
-        <DialogTitle>Confirm {confirmAction === 'hide' ? 'Hide' : 'Unhide'} Comment</DialogTitle>
+        <DialogTitle>Confirm {confirmAction === 'hide' ? 'Hide' : 'Unhide'} Item</DialogTitle>
         <DialogContent>
-          <Typography>Are you sure you want to {confirmAction} this comment?</Typography>
-          {confirmAction === 'hide' && (
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              The comment will no longer be visible to users.
-            </Typography>
-          )}
+          <Typography>
+            Are you sure you want to {confirmAction} <strong>"{selectedItem?.title}"</strong>?
+          </Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setConfirmOpen(false)}>Cancel</Button>

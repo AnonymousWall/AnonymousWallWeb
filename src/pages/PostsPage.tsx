@@ -26,8 +26,11 @@ import {
   Select,
   MenuItem,
 } from '@mui/material';
-import { Delete as DeleteIcon, Visibility as VisibilityIcon } from '@mui/icons-material';
-import { usePosts, useDeletePost } from '../hooks/usePosts';
+import {
+  Visibility as VisibilityIcon,
+  VisibilityOff as VisibilityOffIcon,
+} from '@mui/icons-material';
+import { usePosts, useHidePost, useUnhidePost } from '../hooks/usePosts';
 import { PAGINATION_CONFIG, SUCCESS_MESSAGES } from '../config/constants';
 import type { Post } from '../types';
 import { format } from 'date-fns';
@@ -39,13 +42,13 @@ export const PostsPage: React.FC = () => {
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<'hide' | 'unhide'>('hide');
   const [hiddenFilter, setHiddenFilter] = useState<'all' | 'visible' | 'hidden'>('all');
   const [wallFilter, setWallFilter] = useState<'all' | 'national' | 'campus'>('all');
   const [successMessage, setSuccessMessage] = useState('');
   const [sortBy, setSortBy] = useState<string>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  // Fetch posts with pagination, filter, and sorting
   const hidden = hiddenFilter === 'all' ? undefined : hiddenFilter === 'hidden';
   const wall = wallFilter === 'all' ? undefined : wallFilter;
   const { data, isLoading, error } = usePosts(
@@ -58,8 +61,8 @@ export const PostsPage: React.FC = () => {
     wall
   );
 
-  // Delete post mutation
-  const deletePostMutation = useDeletePost();
+  const hidePostMutation = useHidePost();
+  const unhidePostMutation = useUnhidePost();
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
@@ -72,10 +75,8 @@ export const PostsPage: React.FC = () => {
 
   const handleSort = (field: string) => {
     if (sortBy === field) {
-      // Toggle order if clicking the same field
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {
-      // When switching to a new field, use desc for dates and asc for others
       setSortOrder(field === 'createdAt' ? 'desc' : 'asc');
     }
     setSortBy(field);
@@ -87,24 +88,31 @@ export const PostsPage: React.FC = () => {
     setDetailsOpen(true);
   };
 
-  const handleDeleteClick = (post: Post) => {
+  const handleActionClick = (post: Post, action: 'hide' | 'unhide') => {
     setSelectedPost(post);
+    setConfirmAction(action);
     setConfirmOpen(true);
   };
 
-  const confirmDelete = async () => {
+  const handleConfirm = async () => {
     if (!selectedPost) return;
 
     try {
-      await deletePostMutation.mutateAsync(selectedPost.id);
-      setSuccessMessage(SUCCESS_MESSAGES.POST_DELETED);
+      if (confirmAction === 'hide') {
+        await hidePostMutation.mutateAsync(selectedPost.id);
+        setSuccessMessage(SUCCESS_MESSAGES.POST_HIDDEN);
+      } else {
+        await unhidePostMutation.mutateAsync(selectedPost.id);
+        setSuccessMessage(SUCCESS_MESSAGES.POST_UNHIDDEN);
+      }
       setConfirmOpen(false);
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err) {
-      // Error is handled by mutation
-      console.error('Delete failed:', err);
+      console.error('Action failed:', err);
     }
   };
+
+  const isPending = hidePostMutation.isPending || unhidePostMutation.isPending;
 
   return (
     <Box>
@@ -256,14 +264,24 @@ export const PostsPage: React.FC = () => {
                           <VisibilityIcon />
                         </IconButton>
                       </Tooltip>
-                      {!post.hidden && (
-                        <Tooltip title="Delete Post">
+                      {post.hidden ? (
+                        <Tooltip title="Unhide Post">
+                          <IconButton
+                            size="small"
+                            color="success"
+                            onClick={() => handleActionClick(post, 'unhide')}
+                          >
+                            <VisibilityIcon />
+                          </IconButton>
+                        </Tooltip>
+                      ) : (
+                        <Tooltip title="Hide Post">
                           <IconButton
                             size="small"
                             color="error"
-                            onClick={() => handleDeleteClick(post)}
+                            onClick={() => handleActionClick(post, 'hide')}
                           >
-                            <DeleteIcon />
+                            <VisibilityOffIcon />
                           </IconButton>
                         </Tooltip>
                       )}
@@ -346,25 +364,27 @@ export const PostsPage: React.FC = () => {
 
       {/* Confirmation Dialog */}
       <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
-        <DialogTitle>Confirm Delete Post</DialogTitle>
+        <DialogTitle>Confirm {confirmAction === 'hide' ? 'Hide' : 'Unhide'} Post</DialogTitle>
         <DialogContent>
           <Typography>
-            Are you sure you want to delete the post titled <strong>"{selectedPost?.title}"</strong>
-            ?
+            Are you sure you want to {confirmAction} the post titled{' '}
+            <strong>"{selectedPost?.title}"</strong>?
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            This will soft-delete the post and it will no longer be visible to users.
-          </Typography>
+          {confirmAction === 'hide' && (
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              The post will no longer be visible to users.
+            </Typography>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setConfirmOpen(false)}>Cancel</Button>
           <Button
-            onClick={confirmDelete}
-            color="error"
+            onClick={handleConfirm}
+            color={confirmAction === 'hide' ? 'error' : 'success'}
             variant="contained"
-            disabled={deletePostMutation.isPending}
+            disabled={isPending}
           >
-            {deletePostMutation.isPending ? 'Deleting...' : 'Delete'}
+            {isPending ? 'Processing...' : confirmAction === 'hide' ? 'Hide' : 'Unhide'}
           </Button>
         </DialogActions>
       </Dialog>
