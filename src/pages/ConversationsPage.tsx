@@ -85,9 +85,11 @@ export const ConversationsPage: React.FC = () => {
                         {conversation.id}
                       </Typography>
                     </TableCell>
-                    <TableCell>{conversation.participantIds.length} participants</TableCell>
+                    <TableCell>{(conversation.participantIds ?? []).length} participants</TableCell>
                     <TableCell>
-                      {format(new Date(conversation.lastMessageAt), 'MMM d, yyyy HH:mm')}
+                      {conversation.lastMessageAt
+                        ? format(new Date(conversation.lastMessageAt), 'MMM d, yyyy HH:mm')
+                        : 'No messages yet'}
                     </TableCell>
                     <TableCell>
                       {format(new Date(conversation.createdAt), 'MMM d, yyyy HH:mm')}

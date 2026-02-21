@@ -78,9 +78,11 @@ export const UserConversationsTable: React.FC<UserConversationsTableProps> = ({ 
                         {conv.id}
                       </Typography>
                     </TableCell>
-                    <TableCell>{conv.participantIds.length} participants</TableCell>
+                    <TableCell>{(conv.participantIds ?? []).length} participants</TableCell>
                     <TableCell>
-                      {format(new Date(conv.lastMessageAt), 'MMM d, yyyy HH:mm')}
+                      {conv.lastMessageAt
+                        ? format(new Date(conv.lastMessageAt), 'MMM d, yyyy HH:mm')
+                        : 'No messages yet'}
                     </TableCell>
                     <TableCell>{format(new Date(conv.createdAt), 'MMM d, yyyy HH:mm')}</TableCell>
                     <TableCell align="right">

@@ -149,8 +149,8 @@ export interface MarketplaceItem {
 // Conversation types
 export interface Conversation {
   id: string;
-  participantIds: string[];
-  lastMessageAt: string;
+  participantIds?: string[];
+  lastMessageAt?: string | null;
   createdAt: string;
 }
 
