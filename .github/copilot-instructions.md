@@ -517,6 +517,7 @@ Response: 200 OK
         {
             "id": "uuid",
             "postId": "uuid",
+            "parentType": "POST", // or "INTERNSHIP", "MARKETPLACE"
             "userId": "uuid",
             "profileName": "Anonymous",
             "text": "Comment text...",
