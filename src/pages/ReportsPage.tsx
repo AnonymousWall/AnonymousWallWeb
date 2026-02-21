@@ -213,28 +213,38 @@ export const ReportsPage: React.FC = () => {
                           </TableCell>
                           <TableCell align="right">
                             <Tooltip title="Resolve">
-                              <IconButton
-                                size="small"
-                                color="success"
-                                onClick={() => handleResolve(report.id, 'POST')}
-                                disabled={
-                                  resolveReportMutation.isPending || rejectReportMutation.isPending
-                                }
-                              >
-                                <ResolveIcon />
-                              </IconButton>
+                              <span>
+                                <IconButton
+                                  size="small"
+                                  color="success"
+                                  onClick={() => handleResolve(report.id, 'POST')}
+                                  disabled={
+                                    resolveReportMutation.isPending ||
+                                    rejectReportMutation.isPending ||
+                                    report.status === 'RESOLVED' ||
+                                    report.status === 'REJECTED'
+                                  }
+                                >
+                                  <ResolveIcon />
+                                </IconButton>
+                              </span>
                             </Tooltip>
                             <Tooltip title="Reject">
-                              <IconButton
-                                size="small"
-                                color="error"
-                                onClick={() => handleReject(report.id, 'POST')}
-                                disabled={
-                                  resolveReportMutation.isPending || rejectReportMutation.isPending
-                                }
-                              >
-                                <RejectIcon />
-                              </IconButton>
+                              <span>
+                                <IconButton
+                                  size="small"
+                                  color="error"
+                                  onClick={() => handleReject(report.id, 'POST')}
+                                  disabled={
+                                    resolveReportMutation.isPending ||
+                                    rejectReportMutation.isPending ||
+                                    report.status === 'RESOLVED' ||
+                                    report.status === 'REJECTED'
+                                  }
+                                >
+                                  <RejectIcon />
+                                </IconButton>
+                              </span>
                             </Tooltip>
                           </TableCell>
                         </TableRow>
@@ -309,28 +319,38 @@ export const ReportsPage: React.FC = () => {
                           </TableCell>
                           <TableCell align="right">
                             <Tooltip title="Resolve">
-                              <IconButton
-                                size="small"
-                                color="success"
-                                onClick={() => handleResolve(report.id, 'COMMENT')}
-                                disabled={
-                                  resolveReportMutation.isPending || rejectReportMutation.isPending
-                                }
-                              >
-                                <ResolveIcon />
-                              </IconButton>
+                              <span>
+                                <IconButton
+                                  size="small"
+                                  color="success"
+                                  onClick={() => handleResolve(report.id, 'COMMENT')}
+                                  disabled={
+                                    resolveReportMutation.isPending ||
+                                    rejectReportMutation.isPending ||
+                                    report.status === 'RESOLVED' ||
+                                    report.status === 'REJECTED'
+                                  }
+                                >
+                                  <ResolveIcon />
+                                </IconButton>
+                              </span>
                             </Tooltip>
                             <Tooltip title="Reject">
-                              <IconButton
-                                size="small"
-                                color="error"
-                                onClick={() => handleReject(report.id, 'COMMENT')}
-                                disabled={
-                                  resolveReportMutation.isPending || rejectReportMutation.isPending
-                                }
-                              >
-                                <RejectIcon />
-                              </IconButton>
+                              <span>
+                                <IconButton
+                                  size="small"
+                                  color="error"
+                                  onClick={() => handleReject(report.id, 'COMMENT')}
+                                  disabled={
+                                    resolveReportMutation.isPending ||
+                                    rejectReportMutation.isPending ||
+                                    report.status === 'RESOLVED' ||
+                                    report.status === 'REJECTED'
+                                  }
+                                >
+                                  <RejectIcon />
+                                </IconButton>
+                              </span>
                             </Tooltip>
                           </TableCell>
                         </TableRow>

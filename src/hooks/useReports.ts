@@ -30,7 +30,19 @@ export const useResolveReport = () => {
   return useMutation({
     mutationFn: ({ id, type }: { id: string; type: 'POST' | 'COMMENT' }) =>
       reportService.resolveReport(id, type),
-    onSuccess: () => {
+    onSuccess: (_data, { id, type }) => {
+      queryClient.setQueriesData<ReportsResponse>({ queryKey: [QUERY_KEYS.REPORTS] }, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          postReports: old.postReports.map((r) =>
+            r.id === id && type === 'POST' ? { ...r, status: 'RESOLVED' as const } : r
+          ),
+          commentReports: old.commentReports.map((r) =>
+            r.id === id && type === 'COMMENT' ? { ...r, status: 'RESOLVED' as const } : r
+          ),
+        };
+      });
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.REPORTS] });
     },
   });
@@ -42,7 +54,19 @@ export const useRejectReport = () => {
   return useMutation({
     mutationFn: ({ id, type }: { id: string; type: 'POST' | 'COMMENT' }) =>
       reportService.rejectReport(id, type),
-    onSuccess: () => {
+    onSuccess: (_data, { id, type }) => {
+      queryClient.setQueriesData<ReportsResponse>({ queryKey: [QUERY_KEYS.REPORTS] }, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          postReports: old.postReports.map((r) =>
+            r.id === id && type === 'POST' ? { ...r, status: 'REJECTED' as const } : r
+          ),
+          commentReports: old.commentReports.map((r) =>
+            r.id === id && type === 'COMMENT' ? { ...r, status: 'REJECTED' as const } : r
+          ),
+        };
+      });
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.REPORTS] });
     },
   });
