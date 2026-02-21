@@ -15,7 +15,7 @@ import {
   CircularProgress,
   Alert,
 } from '@mui/material';
-import { useUserComments } from '../hooks/useUsers';
+import { useComments } from '../hooks/useComments';
 import { PAGINATION_CONFIG } from '../config/constants';
 import { format } from 'date-fns';
 import { ParentEntityLink, CommentLink } from './EntityLinks';
@@ -30,14 +30,14 @@ export const UserCommentsTable: React.FC<UserCommentsTableProps> = ({ userId }) 
   const [sortBy, setSortBy] = useState<string>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  // Fetch user comments with pagination and sorting
-  const { data, isLoading, error } = useUserComments(
-    userId,
+  // Fetch comments filtered by userId via /admin/comments?userId=... which includes parentType
+  const { data, isLoading, error } = useComments(
     page + 1,
     rowsPerPage,
+    undefined,
     sortBy,
     sortOrder,
-    !!userId
+    userId
   );
 
   const handleChangePage = (_event: unknown, newPage: number) => {
