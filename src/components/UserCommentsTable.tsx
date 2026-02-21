@@ -15,10 +15,10 @@ import {
   CircularProgress,
   Alert,
 } from '@mui/material';
-import { useUserComments } from '../hooks/useUsers';
+import { useComments } from '../hooks/useComments';
 import { PAGINATION_CONFIG } from '../config/constants';
 import { format } from 'date-fns';
-import { PostLink, CommentLink } from './EntityLinks';
+import { ParentEntityLink, CommentLink } from './EntityLinks';
 
 interface UserCommentsTableProps {
   userId: string;
@@ -30,14 +30,14 @@ export const UserCommentsTable: React.FC<UserCommentsTableProps> = ({ userId }) 
   const [sortBy, setSortBy] = useState<string>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  // Fetch user comments with pagination and sorting
-  const { data, isLoading, error } = useUserComments(
-    userId,
+  // Fetch comments filtered by userId via /admin/comments?userId=... which includes parentType
+  const { data, isLoading, error } = useComments(
     page + 1,
     rowsPerPage,
+    undefined,
     sortBy,
     sortOrder,
-    !!userId
+    userId
   );
 
   const handleChangePage = (_event: unknown, newPage: number) => {
@@ -80,7 +80,7 @@ export const UserCommentsTable: React.FC<UserCommentsTableProps> = ({ userId }) 
             <TableHead>
               <TableRow>
                 <TableCell>Comment Text</TableCell>
-                <TableCell>Post</TableCell>
+                <TableCell>Parent</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell>
                   <TableSortLabel
@@ -115,9 +115,13 @@ export const UserCommentsTable: React.FC<UserCommentsTableProps> = ({ userId }) 
                       </CommentLink>
                     </TableCell>
                     <TableCell>
-                      <PostLink postId={comment.postId} sx={{ maxWidth: 150 }}>
+                      <ParentEntityLink
+                        parentId={comment.postId}
+                        parentType={comment.parentType}
+                        sx={{ maxWidth: 150 }}
+                      >
                         {comment.postId}
-                      </PostLink>
+                      </ParentEntityLink>
                     </TableCell>
                     <TableCell>
                       <Chip

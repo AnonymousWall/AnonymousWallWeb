@@ -21,6 +21,10 @@ import {
   CircularProgress,
   Alert,
   Tooltip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import {
   Block as BlockIcon,
@@ -44,9 +48,10 @@ export const UsersPage: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [sortBy, setSortBy] = useState<string>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [blockedFilter, setBlockedFilter] = useState<'all' | 'active' | 'blocked'>('all');
 
-  // Fetch users with pagination and sorting
-  const { data, isLoading, error } = useUsers(page + 1, rowsPerPage, sortBy, sortOrder);
+  const blocked = blockedFilter === 'all' ? undefined : blockedFilter === 'blocked';
+  const { data, isLoading, error } = useUsers(page + 1, rowsPerPage, sortBy, sortOrder, blocked);
 
   // Fetch individual user details
   const { data: userDetails } = useUser(selectedUserId || '', !!selectedUserId);
@@ -118,6 +123,21 @@ export const UsersPage: React.FC = () => {
             Manage users, view details, and block/unblock accounts
           </Typography>
         </Box>
+        <FormControl sx={{ minWidth: 150 }}>
+          <InputLabel>Filter</InputLabel>
+          <Select
+            value={blockedFilter}
+            label="Filter"
+            onChange={(e) => {
+              setBlockedFilter(e.target.value as 'all' | 'active' | 'blocked');
+              setPage(0);
+            }}
+          >
+            <MenuItem value="all">All Users</MenuItem>
+            <MenuItem value="active">Active</MenuItem>
+            <MenuItem value="blocked">Blocked</MenuItem>
+          </Select>
+        </FormControl>
       </Box>
 
       {error && (

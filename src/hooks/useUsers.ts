@@ -1,26 +1,29 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { userService } from '../api/userService';
 import { QUERY_KEYS } from '../config/constants';
-import type { User, PaginatedResponse, Post, Comment } from '../types';
+import type {
+  User,
+  PaginatedResponse,
+  Post,
+  Comment,
+  Internship,
+  MarketplaceItem,
+  Conversation,
+} from '../types';
 
-/**
- * Custom hook to fetch users
- */
 export const useUsers = (
   page: number,
   limit: number,
   sortBy?: string,
-  sortOrder?: 'asc' | 'desc'
+  sortOrder?: 'asc' | 'desc',
+  blocked?: boolean
 ) => {
   return useQuery<PaginatedResponse<User>, Error>({
-    queryKey: [QUERY_KEYS.USERS, page, limit, sortBy, sortOrder],
-    queryFn: () => userService.getUsers(page, limit, sortBy, sortOrder),
+    queryKey: [QUERY_KEYS.USERS, page, limit, sortBy, sortOrder, blocked],
+    queryFn: () => userService.getUsers(page, limit, sortBy, sortOrder, blocked),
   });
 };
 
-/**
- * Custom hook to fetch a single user
- */
 export const useUser = (userId: string, enabled = true) => {
   return useQuery<User, Error>({
     queryKey: [QUERY_KEYS.USER, userId],
@@ -29,9 +32,6 @@ export const useUser = (userId: string, enabled = true) => {
   });
 };
 
-/**
- * Custom hook to fetch posts by user ID
- */
 export const useUserPosts = (
   userId: string,
   page: number,
@@ -47,9 +47,6 @@ export const useUserPosts = (
   });
 };
 
-/**
- * Custom hook to fetch comments by user ID
- */
 export const useUserComments = (
   userId: string,
   page: number,
@@ -65,31 +62,57 @@ export const useUserComments = (
   });
 };
 
-/**
- * Custom hook to block a user
- */
+export const useUserInternships = (userId: string, page: number, limit: number, enabled = true) => {
+  return useQuery<PaginatedResponse<Internship>, Error>({
+    queryKey: [QUERY_KEYS.USER_INTERNSHIPS, userId, page, limit],
+    queryFn: () => userService.getUserInternships(userId, page, limit),
+    enabled,
+  });
+};
+
+export const useUserMarketplaces = (
+  userId: string,
+  page: number,
+  limit: number,
+  enabled = true
+) => {
+  return useQuery<PaginatedResponse<MarketplaceItem>, Error>({
+    queryKey: [QUERY_KEYS.USER_MARKETPLACES, userId, page, limit],
+    queryFn: () => userService.getUserMarketplaces(userId, page, limit),
+    enabled,
+  });
+};
+
+export const useUserConversations = (
+  userId: string,
+  page: number,
+  limit: number,
+  enabled = true
+) => {
+  return useQuery<PaginatedResponse<Conversation>, Error>({
+    queryKey: [QUERY_KEYS.USER_CONVERSATIONS, userId, page, limit],
+    queryFn: () => userService.getUserConversations(userId, page, limit),
+    enabled,
+  });
+};
+
 export const useBlockUser = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (userId: string) => userService.blockUser(userId),
     onSuccess: () => {
-      // Invalidate users query to refetch
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.USERS] });
     },
   });
 };
 
-/**
- * Custom hook to unblock a user
- */
 export const useUnblockUser = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (userId: string) => userService.unblockUser(userId),
     onSuccess: () => {
-      // Invalidate users query to refetch
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.USERS] });
     },
   });

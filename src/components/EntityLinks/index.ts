@@ -32,4 +32,8 @@ export type { PostLinkProps } from './PostLink';
 export { CommentLink } from './CommentLink';
 export type { CommentLinkProps } from './CommentLink';
 
+export { ParentEntityLink } from './ParentEntityLink';
+export type { ParentEntityLinkProps } from './ParentEntityLink';
+export { getParentLabel, getParentRoute } from './parentEntityUtils';
+
 export { defaultLinkStyle } from './styles';

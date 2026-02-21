@@ -23,51 +23,37 @@ import {
   Visibility as VisibilityIcon,
   VisibilityOff as VisibilityOffIcon,
 } from '@mui/icons-material';
-import { useComment, useHideComment, useUnhideComment } from '../hooks/useComments';
+import { useMarketplace, useHideMarketplace, useUnhideMarketplace } from '../hooks/useMarketplaces';
 import { useUser, useBlockUser } from '../hooks/useUsers';
-import { getParentLabel, getParentRoute } from '../components/EntityLinks';
 import { ROUTES, SUCCESS_MESSAGES } from '../config/constants';
 import { format } from 'date-fns';
 
-export const CommentDetailPage: React.FC = () => {
+export const MarketplaceDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [hideDialogOpen, setHideDialogOpen] = useState(false);
   const [blockDialogOpen, setBlockDialogOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
-  const { data: comment, isLoading, error } = useComment(id || '', !!id);
-  const { data: author } = useUser(comment?.userId || '', !!comment?.userId);
+  const { data: item, isLoading, error } = useMarketplace(id || '', !!id);
+  const { data: author } = useUser(item?.userId || '', !!item?.userId);
 
-  const hideCommentMutation = useHideComment();
-  const unhideCommentMutation = useUnhideComment();
+  const hideMarketplaceMutation = useHideMarketplace();
+  const unhideMarketplaceMutation = useUnhideMarketplace();
   const blockUserMutation = useBlockUser();
 
-  const handleBack = () => {
-    navigate(-1);
-  };
-
-  const handleViewUser = () => {
-    if (comment?.userId) {
-      navigate(ROUTES.USER_DETAIL(comment.userId));
-    }
-  };
-
-  const handleViewParent = () => {
-    if (!comment?.postId) return;
-    navigate(getParentRoute(comment.postId, comment.parentType));
-  };
+  const handleBack = () => navigate(-1);
 
   const handleHideUnhide = async () => {
-    if (!id || !comment) return;
+    if (!id || !item) return;
 
     try {
-      if (comment.hidden) {
-        await unhideCommentMutation.mutateAsync(id);
-        setSuccessMessage(SUCCESS_MESSAGES.COMMENT_UNHIDDEN);
+      if (item.hidden) {
+        await unhideMarketplaceMutation.mutateAsync(id);
+        setSuccessMessage(SUCCESS_MESSAGES.MARKETPLACE_UNHIDDEN);
       } else {
-        await hideCommentMutation.mutateAsync(id);
-        setSuccessMessage(SUCCESS_MESSAGES.COMMENT_HIDDEN);
+        await hideMarketplaceMutation.mutateAsync(id);
+        setSuccessMessage(SUCCESS_MESSAGES.MARKETPLACE_HIDDEN);
       }
       setHideDialogOpen(false);
     } catch (err) {
@@ -77,10 +63,10 @@ export const CommentDetailPage: React.FC = () => {
   };
 
   const handleBlockUser = async () => {
-    if (!comment?.userId) return;
+    if (!item?.userId) return;
 
     try {
-      await blockUserMutation.mutateAsync(comment.userId);
+      await blockUserMutation.mutateAsync(item.userId);
       setSuccessMessage(SUCCESS_MESSAGES.USER_BLOCKED);
       setBlockDialogOpen(false);
     } catch (err) {
@@ -97,7 +83,7 @@ export const CommentDetailPage: React.FC = () => {
     );
   }
 
-  if (error || !comment) {
+  if (error || !item) {
     return (
       <Box>
         <Box sx={{ mb: 3 }}>
@@ -105,7 +91,7 @@ export const CommentDetailPage: React.FC = () => {
             Back
           </Button>
         </Box>
-        <Alert severity="error">{error?.message || 'Comment not found'}</Alert>
+        <Alert severity="error">{error?.message || 'Marketplace item not found'}</Alert>
       </Box>
     );
   }
@@ -119,12 +105,12 @@ export const CommentDetailPage: React.FC = () => {
         <Box>
           <Button
             variant="outlined"
-            color={comment.hidden ? 'success' : 'error'}
-            startIcon={comment.hidden ? <VisibilityIcon /> : <VisibilityOffIcon />}
+            color={item.hidden ? 'success' : 'error'}
+            startIcon={item.hidden ? <VisibilityIcon /> : <VisibilityOffIcon />}
             onClick={() => setHideDialogOpen(true)}
             sx={{ mr: 1 }}
           >
-            {comment.hidden ? 'Unhide Comment' : 'Hide Comment'}
+            {item.hidden ? 'Unhide' : 'Hide'}
           </Button>
           <Button
             variant="outlined"
@@ -145,14 +131,18 @@ export const CommentDetailPage: React.FC = () => {
 
       <Paper sx={{ p: 3 }}>
         <Typography variant="h4" fontWeight="bold" gutterBottom>
-          Comment Details
+          Marketplace Item Details
         </Typography>
 
         <Divider sx={{ my: 2 }} />
 
         <Box sx={{ mb: 3 }}>
+          <Typography variant="h5" gutterBottom>
+            {item.title}
+          </Typography>
+
           <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-            {comment.hidden ? (
+            {item.hidden ? (
               <Chip icon={<VisibilityOffIcon />} label="Hidden" color="error" size="small" />
             ) : (
               <Chip icon={<VisibilityIcon />} label="Visible" color="success" size="small" />
@@ -160,7 +150,7 @@ export const CommentDetailPage: React.FC = () => {
           </Box>
 
           <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', mb: 3 }}>
-            {comment.text}
+            {item.description}
           </Typography>
         </Box>
 
@@ -170,10 +160,10 @@ export const CommentDetailPage: React.FC = () => {
           <Card variant="outlined">
             <CardContent>
               <Typography color="text.secondary" gutterBottom>
-                Comment ID
+                ID
               </Typography>
               <Typography variant="body2" sx={{ wordBreak: 'break-all' }}>
-                {comment.id}
+                {item.id}
               </Typography>
             </CardContent>
           </Card>
@@ -181,25 +171,9 @@ export const CommentDetailPage: React.FC = () => {
           <Card variant="outlined">
             <CardContent>
               <Typography color="text.secondary" gutterBottom>
-                Parent Type
+                Price
               </Typography>
-              <Typography variant="body2" gutterBottom>
-                {comment.parentType}
-              </Typography>
-            </CardContent>
-          </Card>
-
-          <Card variant="outlined">
-            <CardContent>
-              <Typography color="text.secondary" gutterBottom>
-                Parent ID
-              </Typography>
-              <Typography variant="body2" sx={{ wordBreak: 'break-all', mb: 1 }}>
-                {comment.postId}
-              </Typography>
-              <Button size="small" onClick={handleViewParent}>
-                View {getParentLabel(comment.parentType)}
-              </Button>
+              <Typography variant="h6">${item.price.toFixed(2)}</Typography>
             </CardContent>
           </Card>
 
@@ -209,10 +183,10 @@ export const CommentDetailPage: React.FC = () => {
                 Author
               </Typography>
               <Typography variant="body2" gutterBottom>
-                {comment.profileName}
+                {item.profileName}
               </Typography>
               {author && (
-                <Button size="small" onClick={handleViewUser}>
+                <Button size="small" onClick={() => navigate(ROUTES.USER_DETAIL(item.userId))}>
                   View User Details
                 </Button>
               )}
@@ -222,58 +196,63 @@ export const CommentDetailPage: React.FC = () => {
           <Card variant="outlined">
             <CardContent>
               <Typography color="text.secondary" gutterBottom>
-                Author ID
+                Comments
               </Typography>
-              <Typography variant="body2" sx={{ wordBreak: 'break-all' }}>
-                {comment.userId}
-              </Typography>
+              <Typography variant="h6">{item.commentCount}</Typography>
             </CardContent>
           </Card>
 
-          <Card variant="outlined" sx={{ gridColumn: 'span 2' }}>
+          <Card variant="outlined">
             <CardContent>
               <Typography color="text.secondary" gutterBottom>
                 Created
               </Typography>
-              <Typography variant="body2">{format(new Date(comment.createdAt), 'PPpp')}</Typography>
+              <Typography variant="body2">{format(new Date(item.createdAt), 'PPpp')}</Typography>
+            </CardContent>
+          </Card>
+
+          <Card variant="outlined">
+            <CardContent>
+              <Typography color="text.secondary" gutterBottom>
+                Last Updated
+              </Typography>
+              <Typography variant="body2">{format(new Date(item.updatedAt), 'PPpp')}</Typography>
             </CardContent>
           </Card>
         </Box>
       </Paper>
 
-      {/* Hide/Unhide Confirmation Dialog */}
+      {/* Hide/Unhide Dialog */}
       <Dialog open={hideDialogOpen} onClose={() => setHideDialogOpen(false)}>
-        <DialogTitle>Confirm {comment.hidden ? 'Unhide' : 'Hide'} Comment</DialogTitle>
+        <DialogTitle>Confirm {item.hidden ? 'Unhide' : 'Hide'}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to {comment.hidden ? 'unhide' : 'hide'} this comment?
-            {!comment.hidden && ' The comment will no longer be visible to users.'}
+            Are you sure you want to {item.hidden ? 'unhide' : 'hide'} this marketplace item?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setHideDialogOpen(false)}>Cancel</Button>
           <Button
             onClick={handleHideUnhide}
-            color={comment.hidden ? 'success' : 'error'}
+            color={item.hidden ? 'success' : 'error'}
             variant="contained"
-            disabled={hideCommentMutation.isPending || unhideCommentMutation.isPending}
+            disabled={hideMarketplaceMutation.isPending || unhideMarketplaceMutation.isPending}
           >
-            {hideCommentMutation.isPending || unhideCommentMutation.isPending
+            {hideMarketplaceMutation.isPending || unhideMarketplaceMutation.isPending
               ? 'Processing...'
-              : comment.hidden
+              : item.hidden
                 ? 'Unhide'
                 : 'Hide'}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Block User Confirmation Dialog */}
+      {/* Block User Dialog */}
       <Dialog open={blockDialogOpen} onClose={() => setBlockDialogOpen(false)}>
         <DialogTitle>Confirm Block User</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to block the author "{comment.profileName}"? This will prevent
-            them from accessing the platform.
+            Are you sure you want to block "{item.profileName}"?
           </DialogContentText>
         </DialogContent>
         <DialogActions>

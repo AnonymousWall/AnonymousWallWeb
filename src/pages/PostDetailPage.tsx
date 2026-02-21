@@ -19,12 +19,11 @@ import {
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
-  Delete as DeleteIcon,
   Block as BlockIcon,
   Visibility as VisibilityIcon,
   VisibilityOff as VisibilityOffIcon,
 } from '@mui/icons-material';
-import { usePost, useDeletePost } from '../hooks/usePosts';
+import { usePost, useHidePost, useUnhidePost } from '../hooks/usePosts';
 import { useUser, useBlockUser } from '../hooks/useUsers';
 import { ROUTES, SUCCESS_MESSAGES } from '../config/constants';
 import { format } from 'date-fns';
@@ -32,18 +31,15 @@ import { format } from 'date-fns';
 export const PostDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [hideDialogOpen, setHideDialogOpen] = useState(false);
   const [blockDialogOpen, setBlockDialogOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
-  // Fetch post details
   const { data: post, isLoading, error } = usePost(id || '', !!id);
-
-  // Fetch user details for the post author
   const { data: author } = useUser(post?.userId || '', !!post?.userId);
 
-  // Mutations
-  const deletePostMutation = useDeletePost();
+  const hidePostMutation = useHidePost();
+  const unhidePostMutation = useUnhidePost();
   const blockUserMutation = useBlockUser();
 
   const handleBack = () => {
@@ -56,19 +52,21 @@ export const PostDetailPage: React.FC = () => {
     }
   };
 
-  const handleDeletePost = async () => {
-    if (!id) return;
+  const handleHideUnhide = async () => {
+    if (!id || !post) return;
 
     try {
-      await deletePostMutation.mutateAsync(id);
-      setSuccessMessage(SUCCESS_MESSAGES.POST_DELETED);
-      setDeleteDialogOpen(false);
-      setTimeout(() => {
-        navigate(ROUTES.POSTS);
-      }, 1500);
+      if (post.hidden) {
+        await unhidePostMutation.mutateAsync(id);
+        setSuccessMessage(SUCCESS_MESSAGES.POST_UNHIDDEN);
+      } else {
+        await hidePostMutation.mutateAsync(id);
+        setSuccessMessage(SUCCESS_MESSAGES.POST_HIDDEN);
+      }
+      setHideDialogOpen(false);
     } catch (err) {
-      console.error('Delete failed:', err);
-      setDeleteDialogOpen(false);
+      console.error('Action failed:', err);
+      setHideDialogOpen(false);
     }
   };
 
@@ -113,17 +111,15 @@ export const PostDetailPage: React.FC = () => {
           Back
         </Button>
         <Box>
-          {!post.hidden && (
-            <Button
-              variant="outlined"
-              color="error"
-              startIcon={<DeleteIcon />}
-              onClick={() => setDeleteDialogOpen(true)}
-              sx={{ mr: 1 }}
-            >
-              Delete Post
-            </Button>
-          )}
+          <Button
+            variant="outlined"
+            color={post.hidden ? 'success' : 'error'}
+            startIcon={post.hidden ? <VisibilityIcon /> : <VisibilityOffIcon />}
+            onClick={() => setHideDialogOpen(true)}
+            sx={{ mr: 1 }}
+          >
+            {post.hidden ? 'Unhide Post' : 'Hide Post'}
+          </Button>
           <Button
             variant="outlined"
             color="warning"
@@ -259,24 +255,28 @@ export const PostDetailPage: React.FC = () => {
         </Box>
       </Paper>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
-        <DialogTitle>Confirm Delete</DialogTitle>
+      {/* Hide/Unhide Confirmation Dialog */}
+      <Dialog open={hideDialogOpen} onClose={() => setHideDialogOpen(false)}>
+        <DialogTitle>Confirm {post.hidden ? 'Unhide' : 'Hide'} Post</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete this post? This action will hide the post from users and
-            cannot be undone from the admin panel.
+            Are you sure you want to {post.hidden ? 'unhide' : 'hide'} this post?
+            {!post.hidden && ' The post will no longer be visible to users.'}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+          <Button onClick={() => setHideDialogOpen(false)}>Cancel</Button>
           <Button
-            onClick={handleDeletePost}
-            color="error"
+            onClick={handleHideUnhide}
+            color={post.hidden ? 'success' : 'error'}
             variant="contained"
-            disabled={deletePostMutation.isPending}
+            disabled={hidePostMutation.isPending || unhidePostMutation.isPending}
           >
-            {deletePostMutation.isPending ? 'Deleting...' : 'Delete'}
+            {hidePostMutation.isPending || unhidePostMutation.isPending
+              ? 'Processing...'
+              : post.hidden
+                ? 'Unhide'
+                : 'Hide'}
           </Button>
         </DialogActions>
       </Dialog>

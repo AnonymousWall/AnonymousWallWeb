@@ -28,6 +28,9 @@ import {
   Report as ReportIcon,
   School as SchoolIcon,
   ExitToApp as LogoutIcon,
+  Work as WorkIcon,
+  Storefront as StorefrontIcon,
+  Chat as ChatIcon,
 } from '@mui/icons-material';
 import { useAuthStore } from '../stores/authStore';
 import { ROUTES } from '../config/constants';
@@ -47,6 +50,9 @@ const navItems: NavItem[] = [
   { label: 'Comments', path: ROUTES.COMMENTS, icon: <CommentIcon /> },
   { label: 'Reports', path: ROUTES.REPORTS, icon: <ReportIcon /> },
   { label: 'Schools', path: ROUTES.SCHOOLS, icon: <SchoolIcon /> },
+  { label: 'Internships', path: ROUTES.INTERNSHIPS, icon: <WorkIcon /> },
+  { label: 'Marketplaces', path: ROUTES.MARKETPLACES, icon: <StorefrontIcon /> },
+  { label: 'Conversations', path: ROUTES.CONVERSATIONS, icon: <ChatIcon /> },
 ];
 
 export const Layout: React.FC = () => {

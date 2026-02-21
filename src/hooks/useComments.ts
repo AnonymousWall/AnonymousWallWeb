@@ -3,25 +3,20 @@ import { commentService } from '../api/commentService';
 import { QUERY_KEYS } from '../config/constants';
 import type { Comment, PaginatedResponse } from '../types';
 
-/**
- * Custom hook to fetch comments
- */
 export const useComments = (
   page: number,
   limit: number,
   hidden?: boolean,
   sortBy?: string,
-  sortOrder?: 'asc' | 'desc'
+  sortOrder?: 'asc' | 'desc',
+  userId?: string
 ) => {
   return useQuery<PaginatedResponse<Comment>, Error>({
-    queryKey: [QUERY_KEYS.COMMENTS, page, limit, hidden, sortBy, sortOrder],
-    queryFn: () => commentService.getComments(page, limit, hidden, sortBy, sortOrder),
+    queryKey: [QUERY_KEYS.COMMENTS, page, limit, hidden, sortBy, sortOrder, userId],
+    queryFn: () => commentService.getComments(page, limit, hidden, sortBy, sortOrder, userId),
   });
 };
 
-/**
- * Custom hook to fetch a single comment
- */
 export const useComment = (commentId: string, enabled = true) => {
   return useQuery<Comment, Error>({
     queryKey: [QUERY_KEYS.COMMENT, commentId],
@@ -30,17 +25,26 @@ export const useComment = (commentId: string, enabled = true) => {
   });
 };
 
-/**
- * Custom hook to delete a comment
- */
-export const useDeleteComment = () => {
+export const useHideComment = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (commentId: string) => commentService.deleteComment(commentId),
-    onSuccess: () => {
-      // Invalidate comments query to refetch
+    mutationFn: (commentId: string) => commentService.hideComment(commentId),
+    onSuccess: (_data, commentId) => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COMMENTS] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COMMENT, commentId] });
+    },
+  });
+};
+
+export const useUnhideComment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (commentId: string) => commentService.unhideComment(commentId),
+    onSuccess: (_data, commentId) => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COMMENTS] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COMMENT, commentId] });
     },
   });
 };

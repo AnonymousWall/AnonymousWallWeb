@@ -11,13 +11,17 @@ import {
   TableRow,
   TablePagination,
   TableSortLabel,
+  Chip,
+  IconButton,
   CircularProgress,
   Alert,
   Tabs,
   Tab,
+  Tooltip,
 } from '@mui/material';
-import { useReports } from '../hooks/useReports';
-import { PAGINATION_CONFIG } from '../config/constants';
+import { CheckCircle as ResolveIcon, Cancel as RejectIcon } from '@mui/icons-material';
+import { useReports, useResolveReport, useRejectReport } from '../hooks/useReports';
+import { PAGINATION_CONFIG, SUCCESS_MESSAGES } from '../config/constants';
 import type { PostReport, CommentReport } from '../types';
 import { format } from 'date-fns';
 import { UserLink, PostLink, CommentLink } from '../components/EntityLinks';
@@ -44,19 +48,28 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
+const statusColor = (status?: string) => {
+  if (status === 'RESOLVED') return 'success';
+  if (status === 'REJECTED') return 'error';
+  return 'warning';
+};
+
 export const ReportsPage: React.FC = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(PAGINATION_CONFIG.DEFAULT_PAGE_SIZE);
   const [tabValue, setTabValue] = useState(0);
   const [sortBy, setSortBy] = useState<string>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [successMessage, setSuccessMessage] = useState('');
 
-  // Fetch reports with pagination and sorting
   const {
     data: reports,
     isLoading,
     error,
   } = useReports(page + 1, rowsPerPage, undefined, sortBy, sortOrder);
+
+  const resolveReportMutation = useResolveReport();
+  const rejectReportMutation = useRejectReport();
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
@@ -69,10 +82,8 @@ export const ReportsPage: React.FC = () => {
 
   const handleSort = (field: string) => {
     if (sortBy === field) {
-      // Toggle order if clicking the same field
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {
-      // When switching to a new field, use desc for dates and asc for others
       setSortOrder(field === 'createdAt' ? 'desc' : 'asc');
     }
     setSortBy(field);
@@ -81,6 +92,26 @@ export const ReportsPage: React.FC = () => {
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
+  };
+
+  const handleResolve = async (id: string, type: 'POST' | 'COMMENT') => {
+    try {
+      await resolveReportMutation.mutateAsync({ id, type });
+      setSuccessMessage(SUCCESS_MESSAGES.REPORT_RESOLVED);
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (err) {
+      console.error('Resolve failed:', err);
+    }
+  };
+
+  const handleReject = async (id: string, type: 'POST' | 'COMMENT') => {
+    try {
+      await rejectReportMutation.mutateAsync({ id, type });
+      setSuccessMessage(SUCCESS_MESSAGES.REPORT_REJECTED);
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (err) {
+      console.error('Reject failed:', err);
+    }
   };
 
   return (
@@ -97,6 +128,12 @@ export const ReportsPage: React.FC = () => {
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error.message}
+        </Alert>
+      )}
+
+      {successMessage && (
+        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMessage('')}>
+          {successMessage}
         </Alert>
       )}
 
@@ -123,6 +160,7 @@ export const ReportsPage: React.FC = () => {
                       <TableCell>Reporter ID</TableCell>
                       <TableCell>Reported User ID</TableCell>
                       <TableCell>Reason</TableCell>
+                      <TableCell>Status</TableCell>
                       <TableCell>
                         <TableSortLabel
                           active={sortBy === 'createdAt'}
@@ -132,12 +170,13 @@ export const ReportsPage: React.FC = () => {
                           Reported At
                         </TableSortLabel>
                       </TableCell>
+                      <TableCell align="right">Actions</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {!reports || reports.postReports.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={5} align="center">
+                        <TableCell colSpan={7} align="center">
                           No post reports found
                         </TableCell>
                       </TableRow>
@@ -163,7 +202,50 @@ export const ReportsPage: React.FC = () => {
                             </Typography>
                           </TableCell>
                           <TableCell>
+                            <Chip
+                              label={report.status || 'PENDING'}
+                              size="small"
+                              color={statusColor(report.status)}
+                            />
+                          </TableCell>
+                          <TableCell>
                             {format(new Date(report.createdAt), 'MMM d, yyyy HH:mm')}
+                          </TableCell>
+                          <TableCell align="right">
+                            <Tooltip title="Resolve">
+                              <span>
+                                <IconButton
+                                  size="small"
+                                  color="success"
+                                  onClick={() => handleResolve(report.id, 'POST')}
+                                  disabled={
+                                    resolveReportMutation.isPending ||
+                                    rejectReportMutation.isPending ||
+                                    report.status === 'RESOLVED' ||
+                                    report.status === 'REJECTED'
+                                  }
+                                >
+                                  <ResolveIcon />
+                                </IconButton>
+                              </span>
+                            </Tooltip>
+                            <Tooltip title="Reject">
+                              <span>
+                                <IconButton
+                                  size="small"
+                                  color="error"
+                                  onClick={() => handleReject(report.id, 'POST')}
+                                  disabled={
+                                    resolveReportMutation.isPending ||
+                                    rejectReportMutation.isPending ||
+                                    report.status === 'RESOLVED' ||
+                                    report.status === 'REJECTED'
+                                  }
+                                >
+                                  <RejectIcon />
+                                </IconButton>
+                              </span>
+                            </Tooltip>
                           </TableCell>
                         </TableRow>
                       ))
@@ -182,6 +264,7 @@ export const ReportsPage: React.FC = () => {
                       <TableCell>Reporter ID</TableCell>
                       <TableCell>Reported User ID</TableCell>
                       <TableCell>Reason</TableCell>
+                      <TableCell>Status</TableCell>
                       <TableCell>
                         <TableSortLabel
                           active={sortBy === 'createdAt'}
@@ -191,12 +274,13 @@ export const ReportsPage: React.FC = () => {
                           Reported At
                         </TableSortLabel>
                       </TableCell>
+                      <TableCell align="right">Actions</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {!reports || reports.commentReports.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={5} align="center">
+                        <TableCell colSpan={7} align="center">
                           No comment reports found
                         </TableCell>
                       </TableRow>
@@ -224,7 +308,50 @@ export const ReportsPage: React.FC = () => {
                             </Typography>
                           </TableCell>
                           <TableCell>
+                            <Chip
+                              label={report.status || 'PENDING'}
+                              size="small"
+                              color={statusColor(report.status)}
+                            />
+                          </TableCell>
+                          <TableCell>
                             {format(new Date(report.createdAt), 'MMM d, yyyy HH:mm')}
+                          </TableCell>
+                          <TableCell align="right">
+                            <Tooltip title="Resolve">
+                              <span>
+                                <IconButton
+                                  size="small"
+                                  color="success"
+                                  onClick={() => handleResolve(report.id, 'COMMENT')}
+                                  disabled={
+                                    resolveReportMutation.isPending ||
+                                    rejectReportMutation.isPending ||
+                                    report.status === 'RESOLVED' ||
+                                    report.status === 'REJECTED'
+                                  }
+                                >
+                                  <ResolveIcon />
+                                </IconButton>
+                              </span>
+                            </Tooltip>
+                            <Tooltip title="Reject">
+                              <span>
+                                <IconButton
+                                  size="small"
+                                  color="error"
+                                  onClick={() => handleReject(report.id, 'COMMENT')}
+                                  disabled={
+                                    resolveReportMutation.isPending ||
+                                    rejectReportMutation.isPending ||
+                                    report.status === 'RESOLVED' ||
+                                    report.status === 'REJECTED'
+                                  }
+                                >
+                                  <RejectIcon />
+                                </IconButton>
+                              </span>
+                            </Tooltip>
                           </TableCell>
                         </TableRow>
                       ))
