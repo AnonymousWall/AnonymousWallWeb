@@ -29,9 +29,12 @@ export interface Post {
 }
 
 // Comment types
+export type CommentParentType = 'POST' | 'INTERNSHIP' | 'MARKETPLACE';
+
 export interface Comment {
   id: string;
   postId: string;
+  parentType: CommentParentType;
   userId: string;
   profileName: string;
   text: string;

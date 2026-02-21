@@ -18,7 +18,7 @@ import {
 import { useUserComments } from '../hooks/useUsers';
 import { PAGINATION_CONFIG } from '../config/constants';
 import { format } from 'date-fns';
-import { PostLink, CommentLink } from './EntityLinks';
+import { ParentEntityLink, CommentLink } from './EntityLinks';
 
 interface UserCommentsTableProps {
   userId: string;
@@ -80,7 +80,7 @@ export const UserCommentsTable: React.FC<UserCommentsTableProps> = ({ userId }) 
             <TableHead>
               <TableRow>
                 <TableCell>Comment Text</TableCell>
-                <TableCell>Post</TableCell>
+                <TableCell>Parent</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell>
                   <TableSortLabel
@@ -115,9 +115,13 @@ export const UserCommentsTable: React.FC<UserCommentsTableProps> = ({ userId }) 
                       </CommentLink>
                     </TableCell>
                     <TableCell>
-                      <PostLink postId={comment.postId} sx={{ maxWidth: 150 }}>
+                      <ParentEntityLink
+                        parentId={comment.postId}
+                        parentType={comment.parentType}
+                        sx={{ maxWidth: 150 }}
+                      >
                         {comment.postId}
-                      </PostLink>
+                      </ParentEntityLink>
                     </TableCell>
                     <TableCell>
                       <Chip

@@ -25,6 +25,7 @@ import {
 } from '@mui/icons-material';
 import { useComment, useHideComment, useUnhideComment } from '../hooks/useComments';
 import { useUser, useBlockUser } from '../hooks/useUsers';
+import { getParentLabel, getParentRoute } from '../components/EntityLinks';
 import { ROUTES, SUCCESS_MESSAGES } from '../config/constants';
 import { format } from 'date-fns';
 
@@ -52,10 +53,9 @@ export const CommentDetailPage: React.FC = () => {
     }
   };
 
-  const handleViewPost = () => {
-    if (comment?.postId) {
-      navigate(ROUTES.POST_DETAIL(comment.postId));
-    }
+  const handleViewParent = () => {
+    if (!comment?.postId) return;
+    navigate(getParentRoute(comment.postId, comment.parentType));
   };
 
   const handleHideUnhide = async () => {
@@ -181,13 +181,24 @@ export const CommentDetailPage: React.FC = () => {
           <Card variant="outlined">
             <CardContent>
               <Typography color="text.secondary" gutterBottom>
-                Post ID
+                Parent Type
+              </Typography>
+              <Typography variant="body2" gutterBottom>
+                {comment.parentType}
+              </Typography>
+            </CardContent>
+          </Card>
+
+          <Card variant="outlined">
+            <CardContent>
+              <Typography color="text.secondary" gutterBottom>
+                Parent ID
               </Typography>
               <Typography variant="body2" sx={{ wordBreak: 'break-all', mb: 1 }}>
                 {comment.postId}
               </Typography>
-              <Button size="small" onClick={handleViewPost}>
-                View Post
+              <Button size="small" onClick={handleViewParent}>
+                View {getParentLabel(comment.parentType)}
               </Button>
             </CardContent>
           </Card>

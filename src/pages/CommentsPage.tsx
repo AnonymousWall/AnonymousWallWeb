@@ -34,7 +34,7 @@ import { useComments, useHideComment, useUnhideComment } from '../hooks/useComme
 import { PAGINATION_CONFIG, SUCCESS_MESSAGES } from '../config/constants';
 import type { Comment } from '../types';
 import { format } from 'date-fns';
-import { UserLink, PostLink } from '../components/EntityLinks';
+import { UserLink, ParentEntityLink } from '../components/EntityLinks';
 
 export const CommentsPage: React.FC = () => {
   const [page, setPage] = useState(0);
@@ -151,7 +151,7 @@ export const CommentsPage: React.FC = () => {
               <TableRow>
                 <TableCell>Comment Text</TableCell>
                 <TableCell>Author</TableCell>
-                <TableCell>Post ID</TableCell>
+                <TableCell>Parent</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell>
                   <TableSortLabel
@@ -190,9 +190,13 @@ export const CommentsPage: React.FC = () => {
                       <UserLink userId={comment.userId}>{comment.profileName}</UserLink>
                     </TableCell>
                     <TableCell>
-                      <PostLink postId={comment.postId} sx={{ maxWidth: 150 }}>
+                      <ParentEntityLink
+                        parentId={comment.postId}
+                        parentType={comment.parentType}
+                        sx={{ maxWidth: 150 }}
+                      >
                         {comment.postId}
-                      </PostLink>
+                      </ParentEntityLink>
                     </TableCell>
                     <TableCell>
                       <Chip
@@ -275,7 +279,10 @@ export const CommentsPage: React.FC = () => {
                 <strong>Author ID:</strong> {selectedComment.userId}
               </Typography>
               <Typography variant="body2" gutterBottom>
-                <strong>Post ID:</strong> {selectedComment.postId}
+                <strong>Parent Type:</strong> {selectedComment.parentType}
+              </Typography>
+              <Typography variant="body2" gutterBottom>
+                <strong>Parent ID:</strong> {selectedComment.postId}
               </Typography>
               <Typography variant="body2" gutterBottom>
                 <strong>Status:</strong> {selectedComment.hidden ? 'Hidden' : 'Visible'}
