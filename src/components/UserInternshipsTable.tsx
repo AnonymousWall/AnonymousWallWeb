@@ -76,7 +76,7 @@ export const UserInternshipsTable: React.FC<UserInternshipsTableProps> = ({ user
                         to={ROUTES.INTERNSHIP_DETAIL(internship.id)}
                         sx={{ maxWidth: 200 }}
                       >
-                        {internship.title}
+                        {internship.title || internship.id}
                       </EntityLink>
                     </TableCell>
                     <TableCell>{internship.company}</TableCell>
