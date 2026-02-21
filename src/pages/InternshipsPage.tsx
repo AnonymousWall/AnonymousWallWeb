@@ -208,7 +208,7 @@ export const InternshipsPage: React.FC = () => {
                         to={ROUTES.INTERNSHIP_DETAIL(internship.id)}
                         sx={{ maxWidth: 200 }}
                       >
-                        {internship.title}
+                        {internship.title || internship.id}
                       </EntityLink>
                     </TableCell>
                     <TableCell>{internship.company}</TableCell>
