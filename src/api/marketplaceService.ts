@@ -9,7 +9,8 @@ export const marketplaceService = {
     userId?: string,
     hidden?: boolean,
     sortBy?: string,
-    sortOrder?: 'asc' | 'desc'
+    sortOrder?: 'asc' | 'desc',
+    wall?: 'national' | 'campus'
   ): Promise<PaginatedResponse<MarketplaceItem>> {
     return httpClient.get<PaginatedResponse<MarketplaceItem>>(API_ENDPOINTS.ADMIN.MARKETPLACES, {
       page,
@@ -18,6 +19,7 @@ export const marketplaceService = {
       hidden,
       sortBy,
       sortOrder,
+      wall,
     });
   },
 

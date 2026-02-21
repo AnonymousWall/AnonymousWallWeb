@@ -9,7 +9,8 @@ export const internshipService = {
     userId?: string,
     hidden?: boolean,
     sortBy?: string,
-    sortOrder?: 'asc' | 'desc'
+    sortOrder?: 'asc' | 'desc',
+    wall?: 'national' | 'campus'
   ): Promise<PaginatedResponse<Internship>> {
     return httpClient.get<PaginatedResponse<Internship>>(API_ENDPOINTS.ADMIN.INTERNSHIPS, {
       page,
@@ -18,6 +19,7 @@ export const internshipService = {
       hidden,
       sortBy,
       sortOrder,
+      wall,
     });
   },
 

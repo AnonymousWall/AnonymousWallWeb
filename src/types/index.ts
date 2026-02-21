@@ -126,6 +126,8 @@ export interface Internship {
   company: string;
   description: string;
   location: string;
+  wall?: 'national' | 'campus';
+  schoolDomain?: string;
   commentCount: number;
   hidden: boolean;
   createdAt: string;
@@ -140,6 +142,8 @@ export interface MarketplaceItem {
   title: string;
   description: string;
   price: number;
+  wall?: 'national' | 'campus';
+  schoolDomain?: string;
   commentCount: number;
   hidden: boolean;
   createdAt: string;

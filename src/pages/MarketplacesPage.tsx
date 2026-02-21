@@ -48,18 +48,21 @@ export const MarketplacesPage: React.FC = () => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState<'hide' | 'unhide'>('hide');
   const [hiddenFilter, setHiddenFilter] = useState<'all' | 'visible' | 'hidden'>('all');
+  const [wallFilter, setWallFilter] = useState<'all' | 'national' | 'campus'>('all');
   const [successMessage, setSuccessMessage] = useState('');
   const [sortBy, setSortBy] = useState<string>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const hidden = hiddenFilter === 'all' ? undefined : hiddenFilter === 'hidden';
+  const wall = wallFilter === 'all' ? undefined : wallFilter;
   const { data, isLoading, error } = useMarketplaces(
     page + 1,
     rowsPerPage,
     undefined,
     hidden,
     sortBy,
-    sortOrder
+    sortOrder,
+    wall
   );
 
   const hideMarketplaceMutation = useHideMarketplace();
@@ -165,6 +168,24 @@ export const MarketplacesPage: React.FC = () => {
                   </TableSortLabel>
                 </TableCell>
                 <TableCell>
+                  <FormControl size="small" sx={{ minWidth: 100 }}>
+                    <Select
+                      value={wallFilter}
+                      onChange={(e) => {
+                        setWallFilter(e.target.value as 'all' | 'national' | 'campus');
+                        setPage(0);
+                      }}
+                      displayEmpty
+                      aria-label="Filter marketplace items by wall type"
+                      sx={{ fontSize: '0.875rem', fontWeight: 500 }}
+                    >
+                      <MenuItem value="all">All Walls</MenuItem>
+                      <MenuItem value="national">National</MenuItem>
+                      <MenuItem value="campus">Campus</MenuItem>
+                    </Select>
+                  </FormControl>
+                </TableCell>
+                <TableCell>
                   <TableSortLabel
                     active={sortBy === 'price'}
                     direction={sortBy === 'price' ? sortOrder : 'asc'}
@@ -199,13 +220,13 @@ export const MarketplacesPage: React.FC = () => {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={7} align="center">
+                  <TableCell colSpan={8} align="center">
                     <CircularProgress />
                   </TableCell>
                 </TableRow>
               ) : !data || data.data.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} align="center">
+                  <TableCell colSpan={8} align="center">
                     No marketplace items found
                   </TableCell>
                 </TableRow>
@@ -216,6 +237,17 @@ export const MarketplacesPage: React.FC = () => {
                       <EntityLink to={ROUTES.MARKETPLACE_DETAIL(item.id)} sx={{ maxWidth: 200 }}>
                         {item.title}
                       </EntityLink>
+                    </TableCell>
+                    <TableCell>
+                      {item.wall ? (
+                        <Chip
+                          label={item.wall}
+                          size="small"
+                          color={item.wall === 'campus' ? 'primary' : 'secondary'}
+                        />
+                      ) : (
+                        'N/A'
+                      )}
                     </TableCell>
                     <TableCell>${item.price.toFixed(2)}</TableCell>
                     <TableCell>

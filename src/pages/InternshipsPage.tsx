@@ -46,18 +46,21 @@ export const InternshipsPage: React.FC = () => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState<'hide' | 'unhide'>('hide');
   const [hiddenFilter, setHiddenFilter] = useState<'all' | 'visible' | 'hidden'>('all');
+  const [wallFilter, setWallFilter] = useState<'all' | 'national' | 'campus'>('all');
   const [successMessage, setSuccessMessage] = useState('');
   const [sortBy, setSortBy] = useState<string>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const hidden = hiddenFilter === 'all' ? undefined : hiddenFilter === 'hidden';
+  const wall = wallFilter === 'all' ? undefined : wallFilter;
   const { data, isLoading, error } = useInternships(
     page + 1,
     rowsPerPage,
     undefined,
     hidden,
     sortBy,
-    sortOrder
+    sortOrder,
+    wall
   );
 
   const hideInternshipMutation = useHideInternship();
@@ -162,6 +165,24 @@ export const InternshipsPage: React.FC = () => {
                     Title
                   </TableSortLabel>
                 </TableCell>
+                <TableCell>
+                  <FormControl size="small" sx={{ minWidth: 100 }}>
+                    <Select
+                      value={wallFilter}
+                      onChange={(e) => {
+                        setWallFilter(e.target.value as 'all' | 'national' | 'campus');
+                        setPage(0);
+                      }}
+                      displayEmpty
+                      aria-label="Filter internships by wall type"
+                      sx={{ fontSize: '0.875rem', fontWeight: 500 }}
+                    >
+                      <MenuItem value="all">All Walls</MenuItem>
+                      <MenuItem value="national">National</MenuItem>
+                      <MenuItem value="campus">Campus</MenuItem>
+                    </Select>
+                  </FormControl>
+                </TableCell>
                 <TableCell>Company</TableCell>
                 <TableCell>Location</TableCell>
                 <TableCell>Author</TableCell>
@@ -190,13 +211,13 @@ export const InternshipsPage: React.FC = () => {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={8} align="center">
+                  <TableCell colSpan={9} align="center">
                     <CircularProgress />
                   </TableCell>
                 </TableRow>
               ) : !data || data.data.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} align="center">
+                  <TableCell colSpan={9} align="center">
                     No internships found
                   </TableCell>
                 </TableRow>
@@ -210,6 +231,17 @@ export const InternshipsPage: React.FC = () => {
                       >
                         {internship.title || internship.id}
                       </EntityLink>
+                    </TableCell>
+                    <TableCell>
+                      {internship.wall ? (
+                        <Chip
+                          label={internship.wall}
+                          size="small"
+                          color={internship.wall === 'campus' ? 'primary' : 'secondary'}
+                        />
+                      ) : (
+                        'N/A'
+                      )}
                     </TableCell>
                     <TableCell>{internship.company}</TableCell>
                     <TableCell>{internship.location}</TableCell>

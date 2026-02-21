@@ -9,12 +9,13 @@ export const useMarketplaces = (
   userId?: string,
   hidden?: boolean,
   sortBy?: string,
-  sortOrder?: 'asc' | 'desc'
+  sortOrder?: 'asc' | 'desc',
+  wall?: 'national' | 'campus'
 ) => {
   return useQuery<PaginatedResponse<MarketplaceItem>, Error>({
-    queryKey: [QUERY_KEYS.MARKETPLACES, page, limit, userId, hidden, sortBy, sortOrder],
+    queryKey: [QUERY_KEYS.MARKETPLACES, page, limit, userId, hidden, sortBy, sortOrder, wall],
     queryFn: () =>
-      marketplaceService.getMarketplaces(page, limit, userId, hidden, sortBy, sortOrder),
+      marketplaceService.getMarketplaces(page, limit, userId, hidden, sortBy, sortOrder, wall),
   });
 };
 

@@ -9,11 +9,13 @@ export const useInternships = (
   userId?: string,
   hidden?: boolean,
   sortBy?: string,
-  sortOrder?: 'asc' | 'desc'
+  sortOrder?: 'asc' | 'desc',
+  wall?: 'national' | 'campus'
 ) => {
   return useQuery<PaginatedResponse<Internship>, Error>({
-    queryKey: [QUERY_KEYS.INTERNSHIPS, page, limit, userId, hidden, sortBy, sortOrder],
-    queryFn: () => internshipService.getInternships(page, limit, userId, hidden, sortBy, sortOrder),
+    queryKey: [QUERY_KEYS.INTERNSHIPS, page, limit, userId, hidden, sortBy, sortOrder, wall],
+    queryFn: () =>
+      internshipService.getInternships(page, limit, userId, hidden, sortBy, sortOrder, wall),
   });
 };
 
