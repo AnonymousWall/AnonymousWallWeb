@@ -60,7 +60,7 @@ export const ConversationsPage: React.FC = () => {
                 <TableCell>ID</TableCell>
                 <TableCell>Participants</TableCell>
                 <TableCell>Last Message At</TableCell>
-                <TableCell>Created</TableCell>
+                <TableCell>Messages</TableCell>
                 <TableCell align="right">Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -79,10 +79,10 @@ export const ConversationsPage: React.FC = () => {
                 </TableRow>
               ) : (
                 data.data.map((conversation) => (
-                  <TableRow key={conversation.id} hover>
+                  <TableRow key={conversation.conversationId} hover>
                     <TableCell>
                       <Typography variant="body2" sx={{ maxWidth: 200, wordBreak: 'break-all' }}>
-                        {conversation.id}
+                        {conversation.conversationId}
                       </Typography>
                     </TableCell>
                     <TableCell>{(conversation.participantIds ?? []).length} participants</TableCell>
@@ -91,14 +91,14 @@ export const ConversationsPage: React.FC = () => {
                         ? format(new Date(conversation.lastMessageAt), 'MMM d, yyyy HH:mm')
                         : 'No messages yet'}
                     </TableCell>
-                    <TableCell>
-                      {format(new Date(conversation.createdAt), 'MMM d, yyyy HH:mm')}
-                    </TableCell>
+                    <TableCell>{conversation.messageCount ?? 0} messages</TableCell>
                     <TableCell align="right">
                       <Tooltip title="View Messages">
                         <IconButton
                           size="small"
-                          onClick={() => navigate(ROUTES.CONVERSATION_DETAIL(conversation.id))}
+                          onClick={() =>
+                            navigate(ROUTES.CONVERSATION_DETAIL(conversation.conversationId))
+                          }
                         >
                           <VisibilityIcon />
                         </IconButton>

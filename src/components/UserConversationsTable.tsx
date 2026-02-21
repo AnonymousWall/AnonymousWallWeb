@@ -53,7 +53,7 @@ export const UserConversationsTable: React.FC<UserConversationsTableProps> = ({ 
                 <TableCell>ID</TableCell>
                 <TableCell>Participants</TableCell>
                 <TableCell>Last Message At</TableCell>
-                <TableCell>Created</TableCell>
+                <TableCell>Messages</TableCell>
                 <TableCell align="right">Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -72,10 +72,10 @@ export const UserConversationsTable: React.FC<UserConversationsTableProps> = ({ 
                 </TableRow>
               ) : (
                 data.data.map((conv) => (
-                  <TableRow key={conv.id} hover>
+                  <TableRow key={conv.conversationId} hover>
                     <TableCell>
                       <Typography variant="body2" sx={{ maxWidth: 150, wordBreak: 'break-all' }}>
-                        {conv.id}
+                        {conv.conversationId}
                       </Typography>
                     </TableCell>
                     <TableCell>{(conv.participantIds ?? []).length} participants</TableCell>
@@ -84,12 +84,12 @@ export const UserConversationsTable: React.FC<UserConversationsTableProps> = ({ 
                         ? format(new Date(conv.lastMessageAt), 'MMM d, yyyy HH:mm')
                         : 'No messages yet'}
                     </TableCell>
-                    <TableCell>{format(new Date(conv.createdAt), 'MMM d, yyyy HH:mm')}</TableCell>
+                    <TableCell>{conv.messageCount ?? 0} messages</TableCell>
                     <TableCell align="right">
                       <Tooltip title="View Messages">
                         <IconButton
                           size="small"
-                          onClick={() => navigate(ROUTES.CONVERSATION_DETAIL(conv.id))}
+                          onClick={() => navigate(ROUTES.CONVERSATION_DETAIL(conv.conversationId))}
                         >
                           <VisibilityIcon />
                         </IconButton>

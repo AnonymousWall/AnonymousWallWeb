@@ -148,10 +148,10 @@ export interface MarketplaceItem {
 
 // Conversation types
 export interface Conversation {
-  id: string;
+  conversationId: string;
   participantIds?: string[];
   lastMessageAt?: string | null;
-  createdAt: string;
+  messageCount?: number;
 }
 
 export interface Message {
