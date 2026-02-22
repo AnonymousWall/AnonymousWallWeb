@@ -23,6 +23,7 @@ VITE_API_BASE_URL=https://your-api-domain.com/api/v1
 ```
 
 For local development:
+
 ```env
 VITE_API_BASE_URL=http://localhost:8080/api/v1
 ```
@@ -44,6 +45,7 @@ The built files will be in the `dist/` directory.
 ### 1. Netlify
 
 **Option A: Via Netlify CLI**
+
 ```bash
 # Install Netlify CLI
 npm install -g netlify-cli
@@ -56,6 +58,7 @@ netlify deploy --prod
 ```
 
 **Option B: Via Git Integration**
+
 1. Push your code to GitHub
 2. Connect repository to Netlify
 3. Configure build settings:
@@ -66,6 +69,7 @@ netlify deploy --prod
 ### 2. Vercel
 
 **Option A: Via Vercel CLI**
+
 ```bash
 # Install Vercel CLI
 npm install -g vercel
@@ -75,6 +79,7 @@ vercel --prod
 ```
 
 **Option B: Via Git Integration**
+
 1. Push your code to GitHub
 2. Import project to Vercel
 3. Configure:
@@ -83,7 +88,29 @@ vercel --prod
    - Output Directory: `dist`
 4. Add environment variables in Vercel dashboard
 
-### 3. OCI Object Storage + CDN
+### 3. OCI Object Storage + Cloudflare Workers & Pages
+
+Change vite.config.ts content:
+
+```
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+// https://vite.dev/config/
+export default defineConfig({
+  base: './', <<<--- Set base path for SPA routing
+  plugins: [react()],
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
+  },
+});
+```
 
 ```bash
 # Build the application
@@ -96,13 +123,92 @@ oci os object bulk-upload --bucket-name your-bucket-name --src-dir dist/ --overw
 # Stale objects from previous deployments need manual cleanup.
 ```
 
+or
+
+```aiignore
+# Build the application
+npm run build
+./upload.sh
+```
+
 **Object Storage Configuration:**
+
 - Create a bucket in your OCI compartment
 - Enable public access and set bucket visibility to public
 - Set index.html as the default object
 
+** Cloudflare Workers & Pages:**
+Step 1 — Create Cloudflare Worker
+Cloudflare Dashboard → Workers & Pages → Create Worker → paste:
+
+```javascript
+export default {
+  async fetch(request) {
+    const url = new URL(request.url);
+    let path = url.pathname;
+
+    if (path === '/' || !path.includes('.')) {
+      path = '/index.html';
+    }
+
+    const bucketUrl = `https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzwaexqwltre/b/anonymouswall-prod-admin-frontend/o${path}`;
+    const response = await fetch(bucketUrl);
+
+    if (response.status === 404) {
+      return fetch(
+        `https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzwaexqwltre/b/anonymouswall-prod-admin-frontend/o/index.html`
+      );
+    }
+
+    return response;
+  },
+};
+```
+
+Step 2 — Add DNS in Cloudflare
+
+```aiignore
+Type: AAAA
+Name: admin
+Value: 100::
+Proxy: orange cloud (on)
+```
+
+Step 3 — Add Worker Route
+
+Workers & Pages → your worker → Settings → Triggers → Add Route:
+
+```aiignore
+Route: admin.echo-talk.com/*
+Zone: echo-talk.com
+Choose Fail open
+```
+
+Step 4 — Update CORS in application-prod.properties and redeploy backend:
+
+```
+micronaut.server.cors.enabled=true
+micronaut.server.cors.configurations.web.allowed-origins[0]=https://admin.echo-talk.com
+micronaut.server.cors.configurations.web.allowed-methods[0]=GET
+micronaut.server.cors.configurations.web.allowed-methods[1]=POST
+micronaut.server.cors.configurations.web.allowed-methods[2]=PUT
+micronaut.server.cors.configurations.web.allowed-methods[3]=DELETE
+micronaut.server.cors.configurations.web.allowed-methods[4]=OPTIONS
+micronaut.server.cors.configurations.web.allowed-headers[0]=Authorization
+micronaut.server.cors.configurations.web.allowed-headers[1]=Content-Type
+micronaut.server.cors.configurations.web.allow-credentials=true
+micronaut.server.cors.configurations.web.max-age=3600
+```
+
+**Step 5 — Rebuild and redeploy backend, then access:**
+
+```
+https://admin.echo-talk.com
+```
+
 **OCI CDN Configuration:**
 OCI offers Content Delivery Network capabilities through multiple services:
+
 - **OCI Edge Services**: Use OCI Console to create a CDN distribution
 - Configure origin settings with your Object Storage bucket URL
 - Set custom error responses (404 → /index.html)
@@ -110,6 +216,7 @@ OCI offers Content Delivery Network capabilities through multiple services:
 
 **Cache Invalidation:**
 After deploying new content, you can invalidate the CDN cache through:
+
 - **OCI Console**: Navigate to Edge Services → Your Distribution → Purge Cache
 - Set purge type to "All" or specify paths for selective invalidation
 - Alternatively, configure automatic cache invalidation policies in your deployment workflow
@@ -117,11 +224,13 @@ After deploying new content, you can invalidate the CDN cache through:
 ### 4. GitHub Pages
 
 1. Install gh-pages:
+
 ```bash
 npm install --save-dev gh-pages
 ```
 
 2. Add to package.json:
+
 ```json
 {
   "scripts": {
@@ -133,6 +242,7 @@ npm install --save-dev gh-pages
 ```
 
 3. Deploy:
+
 ```bash
 npm run deploy
 ```
@@ -140,6 +250,7 @@ npm run deploy
 ### 5. Docker
 
 **Dockerfile:**
+
 ```dockerfile
 # Build stage
 FROM node:18-alpine AS build
@@ -158,6 +269,7 @@ CMD ["nginx", "-g", "daemon off;"]
 ```
 
 **nginx.conf:**
+
 ```nginx
 server {
     listen 80;
@@ -177,6 +289,7 @@ server {
 ```
 
 **Build and run:**
+
 ```bash
 # Build image
 docker build -t anonymous-wall-admin .
@@ -188,11 +301,13 @@ docker run -p 8080:80 anonymous-wall-admin
 ### 6. Traditional Web Server (Apache/Nginx)
 
 **Build the application:**
+
 ```bash
 npm run build
 ```
 
 **Copy dist/ contents to web server:**
+
 ```bash
 # For Apache
 sudo cp -r dist/* /var/www/html/admin/
@@ -202,6 +317,7 @@ sudo cp -r dist/* /usr/share/nginx/html/admin/
 ```
 
 **Apache Configuration (.htaccess):**
+
 ```apache
 <IfModule mod_rewrite.c>
   RewriteEngine On
@@ -214,6 +330,7 @@ sudo cp -r dist/* /usr/share/nginx/html/admin/
 ```
 
 **Nginx Configuration:**
+
 ```nginx
 location /admin {
     alias /usr/share/nginx/html/admin;
@@ -226,15 +343,16 @@ location /admin {
 
 The following environment variables can be configured:
 
-| Variable | Description | Required | Default |
-|----------|-------------|----------|---------|
-| `VITE_API_BASE_URL` | Backend API base URL | Yes | `http://localhost:8080/api/v1` |
+| Variable            | Description          | Required | Default                        |
+| ------------------- | -------------------- | -------- | ------------------------------ |
+| `VITE_API_BASE_URL` | Backend API base URL | Yes      | `http://localhost:8080/api/v1` |
 
 ## Post-Deployment
 
 ### 1. Verify Deployment
 
 Access your deployed application and verify:
+
 - Login page loads correctly
 - Can authenticate with admin credentials
 - All dashboard features work
@@ -270,6 +388,7 @@ public CorsFilter corsFilter() {
 ## Troubleshooting
 
 ### Build Fails
+
 ```bash
 # Clear cache and rebuild
 rm -rf node_modules dist
@@ -278,15 +397,18 @@ npm run build
 ```
 
 ### 404 Errors After Deployment
+
 - Ensure your web server is configured for SPA routing
 - Check that all routes redirect to index.html
 
 ### API Connection Issues
+
 - Verify `VITE_API_BASE_URL` is correct
 - Check CORS configuration on backend
 - Verify API is accessible from your domain
 
 ### Authentication Issues
+
 - Ensure backend API is running
 - Verify admin user has correct role (ADMIN or MODERATOR)
 - Check JWT token expiration settings
@@ -294,6 +416,7 @@ npm run build
 ## Monitoring
 
 ### Application Logs
+
 Monitor application errors in production:
 
 ```javascript
@@ -305,7 +428,9 @@ window.addEventListener('error', (event) => {
 ```
 
 ### Performance Monitoring
+
 Consider integrating:
+
 - Google Analytics
 - Sentry for error tracking
 - LogRocket for session replay
@@ -316,6 +441,7 @@ Consider integrating:
 ### GitHub Actions Example
 
 `.github/workflows/deploy.yml`:
+
 ```yaml
 name: Deploy to Production
 
@@ -328,20 +454,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          
+
       - name: Install dependencies
         run: npm ci
-        
+
       - name: Build
         env:
           VITE_API_BASE_URL: ${{ secrets.API_BASE_URL }}
         run: npm run build
-        
+
       - name: Deploy to Netlify
         uses: netlify/actions/cli@master
         env:
@@ -354,12 +480,15 @@ jobs:
 ## Rollback Strategy
 
 ### Quick Rollback
+
 1. Keep previous build artifacts
 2. Revert to previous Git commit
 3. Redeploy previous version
 
 ### Automated Rollback
+
 Use your hosting platform's rollback features:
+
 - Netlify: Deploy history
 - Vercel: Deployments page
 - OCI: Resource Manager rollback
@@ -367,6 +496,7 @@ Use your hosting platform's rollback features:
 ## Support
 
 For deployment issues:
+
 1. Check application logs
 2. Verify environment configuration
 3. Review API connectivity
