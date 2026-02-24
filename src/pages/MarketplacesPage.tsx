@@ -35,10 +35,12 @@ import {
   useHideMarketplace,
   useUnhideMarketplace,
 } from '../hooks/useMarketplaces';
-import { PAGINATION_CONFIG, SUCCESS_MESSAGES, ROUTES } from '../config/constants';
+import { PAGINATION_CONFIG, SUCCESS_MESSAGES, ROUTES, QUERY_KEYS } from '../config/constants';
 import type { MarketplaceItem } from '../types';
 import { format } from 'date-fns';
 import { UserLink, EntityLink } from '../components/EntityLinks';
+import { ImageViewerButton } from '../components/ImageViewerButton';
+import { marketplaceService } from '../api/marketplaceService';
 
 export const MarketplacesPage: React.FC = () => {
   const [page, setPage] = useState(0);
@@ -214,19 +216,20 @@ export const MarketplacesPage: React.FC = () => {
                     Created
                   </TableSortLabel>
                 </TableCell>
+                <TableCell>Images</TableCell>
                 <TableCell align="right">Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={8} align="center">
+                  <TableCell colSpan={9} align="center">
                     <CircularProgress />
                   </TableCell>
                 </TableRow>
               ) : !data || data.data.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} align="center">
+                  <TableCell colSpan={9} align="center">
                     No marketplace items found
                   </TableCell>
                 </TableRow>
@@ -262,6 +265,14 @@ export const MarketplacesPage: React.FC = () => {
                       />
                     </TableCell>
                     <TableCell>{format(new Date(item.createdAt), 'MMM d, yyyy HH:mm')}</TableCell>
+                    <TableCell>
+                      <ImageViewerButton
+                        entityId={item.id}
+                        fetchImages={(id) => marketplaceService.getMarketplaceImages(id)}
+                        queryKey={QUERY_KEYS.MARKETPLACE_IMAGES}
+                        dialogTitle="Marketplace Item Images"
+                      />
+                    </TableCell>
                     <TableCell align="right">
                       <Tooltip title="View Details">
                         <IconButton size="small" onClick={() => handleShowDetails(item)}>

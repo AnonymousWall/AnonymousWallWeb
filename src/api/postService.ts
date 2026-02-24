@@ -27,6 +27,12 @@ export const postService = {
     return httpClient.get<Post>(API_ENDPOINTS.ADMIN.POST_BY_ID(postId));
   },
 
+  async getPostImages(postId: string): Promise<{ postId: string; imageUrls: string[] }> {
+    return httpClient.get<{ postId: string; imageUrls: string[] }>(
+      API_ENDPOINTS.ADMIN.POST_IMAGES(postId)
+    );
+  },
+
   async hidePost(postId: string): Promise<{ message: string }> {
     return httpClient.put<{ message: string }>(API_ENDPOINTS.ADMIN.HIDE_POST(postId));
   },
