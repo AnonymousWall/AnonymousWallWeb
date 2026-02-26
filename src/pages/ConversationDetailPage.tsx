@@ -78,9 +78,24 @@ export const ConversationDetailPage: React.FC = () => {
                       <Typography variant="caption" color="text.secondary">
                         Sender: {message.senderId}
                       </Typography>
-                      <Typography variant="body2" sx={{ mt: 0.5 }}>
-                        {message.content}
-                      </Typography>
+                      {message.imageUrl ? (
+                        <Box
+                          component="img"
+                          src={message.imageUrl}
+                          alt={`Image from ${message.senderId}`}
+                          sx={{
+                            display: 'block',
+                            maxWidth: 200,
+                            maxHeight: 200,
+                            borderRadius: 1,
+                            mt: 0.5,
+                          }}
+                        />
+                      ) : (
+                        <Typography variant="body2" sx={{ mt: 0.5 }}>
+                          {message.content ?? ''}
+                        </Typography>
+                      )}
                     </Box>
                     <Typography
                       variant="caption"
