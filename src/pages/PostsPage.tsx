@@ -31,10 +31,12 @@ import {
   VisibilityOff as VisibilityOffIcon,
 } from '@mui/icons-material';
 import { usePosts, useHidePost, useUnhidePost } from '../hooks/usePosts';
-import { PAGINATION_CONFIG, SUCCESS_MESSAGES } from '../config/constants';
+import { PAGINATION_CONFIG, SUCCESS_MESSAGES, QUERY_KEYS } from '../config/constants';
 import type { Post } from '../types';
 import { format } from 'date-fns';
 import { UserLink, PostLink } from '../components/EntityLinks';
+import { ImageViewerButton } from '../components/ImageViewerButton';
+import { postService } from '../api/postService';
 
 export const PostsPage: React.FC = () => {
   const [page, setPage] = useState(0);
@@ -204,6 +206,7 @@ export const PostsPage: React.FC = () => {
                   </TableSortLabel>
                 </TableCell>
                 <TableCell>Status</TableCell>
+                <TableCell>Images</TableCell>
                 <TableCell>
                   <TableSortLabel
                     active={sortBy === 'createdAt'}
@@ -219,13 +222,13 @@ export const PostsPage: React.FC = () => {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={9} align="center">
+                  <TableCell colSpan={10} align="center">
                     <CircularProgress />
                   </TableCell>
                 </TableRow>
               ) : !data || data.data.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} align="center">
+                  <TableCell colSpan={10} align="center">
                     No posts found
                   </TableCell>
                 </TableRow>
@@ -258,6 +261,14 @@ export const PostsPage: React.FC = () => {
                       />
                     </TableCell>
                     <TableCell>{format(new Date(post.createdAt), 'MMM d, yyyy HH:mm')}</TableCell>
+                    <TableCell>
+                      <ImageViewerButton
+                        entityId={post.id}
+                        fetchImages={(id) => postService.getPostImages(id)}
+                        queryKey={QUERY_KEYS.POST_IMAGES}
+                        dialogTitle="Post Images"
+                      />
+                    </TableCell>
                     <TableCell align="right">
                       <Tooltip title="View Details">
                         <IconButton size="small" onClick={() => handleShowDetails(post)}>

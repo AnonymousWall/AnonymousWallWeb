@@ -16,9 +16,11 @@ import {
   Alert,
 } from '@mui/material';
 import { useUserPosts } from '../hooks/useUsers';
-import { PAGINATION_CONFIG } from '../config/constants';
+import { PAGINATION_CONFIG, QUERY_KEYS } from '../config/constants';
 import { format } from 'date-fns';
 import { PostLink } from './EntityLinks';
+import { ImageViewerButton } from './ImageViewerButton';
+import { postService } from '../api/postService';
 
 interface UserPostsTableProps {
   userId: string;
@@ -118,18 +120,19 @@ export const UserPostsTable: React.FC<UserPostsTableProps> = ({ userId }) => {
                     Created
                   </TableSortLabel>
                 </TableCell>
+                <TableCell>Images</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={7} align="center">
+                  <TableCell colSpan={8} align="center">
                     <CircularProgress />
                   </TableCell>
                 </TableRow>
               ) : !data || data.data.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} align="center">
+                  <TableCell colSpan={8} align="center">
                     No posts found
                   </TableCell>
                 </TableRow>
@@ -159,6 +162,14 @@ export const UserPostsTable: React.FC<UserPostsTableProps> = ({ userId }) => {
                       />
                     </TableCell>
                     <TableCell>{format(new Date(post.createdAt), 'MMM d, yyyy HH:mm')}</TableCell>
+                    <TableCell>
+                      <ImageViewerButton
+                        entityId={post.id}
+                        fetchImages={(id) => postService.getPostImages(id)}
+                        queryKey={QUERY_KEYS.POST_IMAGES}
+                        dialogTitle="Post Images"
+                      />
+                    </TableCell>
                   </TableRow>
                 ))
               )}

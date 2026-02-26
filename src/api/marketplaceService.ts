@@ -27,6 +27,14 @@ export const marketplaceService = {
     return httpClient.get<MarketplaceItem>(API_ENDPOINTS.ADMIN.MARKETPLACE_BY_ID(id));
   },
 
+  async getMarketplaceImages(
+    id: string
+  ): Promise<{ marketplaceItemId: string; imageUrls: string[] }> {
+    return httpClient.get<{ marketplaceItemId: string; imageUrls: string[] }>(
+      API_ENDPOINTS.ADMIN.MARKETPLACE_IMAGES(id)
+    );
+  },
+
   async hideMarketplace(id: string): Promise<{ message: string }> {
     return httpClient.put<{ message: string }>(API_ENDPOINTS.ADMIN.HIDE_MARKETPLACE(id));
   },
