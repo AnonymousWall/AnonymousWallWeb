@@ -45,7 +45,7 @@ export interface Comment {
 // Report types
 export interface PostReport {
   id: string;
-  postId: string;
+  targetId: string;
   reporterUserId: string;
   reportedUserId: string;
   reason: string;
@@ -55,7 +55,7 @@ export interface PostReport {
 
 export interface CommentReport {
   id: string;
-  commentId: string;
+  targetId: string;
   reporterUserId: string;
   reportedUserId: string;
   reason: string;
