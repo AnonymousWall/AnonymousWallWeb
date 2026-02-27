@@ -184,7 +184,7 @@ export const ReportsPage: React.FC = () => {
                       reports.postReports.map((report: PostReport) => (
                         <TableRow key={report.id} hover>
                           <TableCell>
-                            <PostLink postId={report.postId}>{report.postId}</PostLink>
+                            <PostLink postId={report.targetId}>{report.targetId}</PostLink>
                           </TableCell>
                           <TableCell>
                             <UserLink userId={report.reporterUserId}>
@@ -288,9 +288,7 @@ export const ReportsPage: React.FC = () => {
                       reports.commentReports.map((report: CommentReport) => (
                         <TableRow key={report.id} hover>
                           <TableCell>
-                            <CommentLink commentId={report.commentId}>
-                              {report.commentId}
-                            </CommentLink>
+                            <CommentLink commentId={report.targetId}>{report.targetId}</CommentLink>
                           </TableCell>
                           <TableCell>
                             <UserLink userId={report.reporterUserId}>
