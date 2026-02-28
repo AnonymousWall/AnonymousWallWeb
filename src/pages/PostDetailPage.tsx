@@ -25,7 +25,9 @@ import {
 } from '@mui/icons-material';
 import { usePost, useHidePost, useUnhidePost } from '../hooks/usePosts';
 import { useUser, useBlockUser } from '../hooks/useUsers';
-import { ROUTES, SUCCESS_MESSAGES } from '../config/constants';
+import { ROUTES, SUCCESS_MESSAGES, QUERY_KEYS } from '../config/constants';
+import { ImageViewerButton } from '../components/ImageViewerButton';
+import { postService } from '../api/postService';
 import { format } from 'date-fns';
 
 export const PostDetailPage: React.FC = () => {
@@ -165,6 +167,13 @@ export const PostDetailPage: React.FC = () => {
           <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', mb: 3 }}>
             {post.content}
           </Typography>
+
+          <ImageViewerButton
+            entityId={post.id}
+            fetchImages={(id) => postService.getPostImages(id)}
+            queryKey={QUERY_KEYS.POST_IMAGES}
+            dialogTitle="Post Images"
+          />
         </Box>
 
         <Divider sx={{ my: 2 }} />
