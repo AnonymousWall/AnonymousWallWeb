@@ -25,7 +25,9 @@ import {
 } from '@mui/icons-material';
 import { useMarketplace, useHideMarketplace, useUnhideMarketplace } from '../hooks/useMarketplaces';
 import { useUser, useBlockUser } from '../hooks/useUsers';
-import { ROUTES, SUCCESS_MESSAGES } from '../config/constants';
+import { ROUTES, SUCCESS_MESSAGES, QUERY_KEYS } from '../config/constants';
+import { ImageViewerButton } from '../components/ImageViewerButton';
+import { marketplaceService } from '../api/marketplaceService';
 import { format } from 'date-fns';
 
 export const MarketplaceDetailPage: React.FC = () => {
@@ -152,6 +154,13 @@ export const MarketplaceDetailPage: React.FC = () => {
           <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', mb: 3 }}>
             {item.description}
           </Typography>
+
+          <ImageViewerButton
+            entityId={item.id}
+            fetchImages={(id) => marketplaceService.getMarketplaceImages(id)}
+            queryKey={QUERY_KEYS.MARKETPLACE_IMAGES}
+            dialogTitle="Marketplace Item Images"
+          />
         </Box>
 
         <Divider sx={{ my: 2 }} />
