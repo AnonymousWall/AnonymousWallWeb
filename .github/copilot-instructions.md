@@ -310,6 +310,9 @@ Response: 200 OK
             "likeCount": 42,
             "commentCount": 15,
             "hidden": false,
+            "imageUrls": [],
+            "postType": "standard",
+            "totalVotes": 0,
             "createdAt": "2026-01-28T...",
             "updatedAt": "2026-01-28T..."
         }
@@ -370,6 +373,9 @@ Response: 200 OK
     "likeCount": 42,
     "commentCount": 15,
     "hidden": false,
+    "imageUrls": [],
+    "postType": "standard",
+    "totalVotes": 0,
     "createdAt": "2026-01-28T...",
     "updatedAt": "2026-01-28T..."
 }
@@ -450,6 +456,9 @@ Response: 200 OK
             "likeCount": 42,
             "commentCount": 15,
             "hidden": false,
+            "imageUrls": [],
+            "postType": "standard",
+            "totalVotes": 0,
             "createdAt": "2026-01-28T...",
             "updatedAt": "2026-01-28T..."
         }
@@ -525,6 +534,47 @@ Response: 200 OK
 
 **Error Responses:**
 
+- `404 Not Found` - Post with specified ID does not exist
+
+**Access:** ADMIN or MODERATOR
+
+#### 6. Get Poll Data for a Post
+
+```http
+GET /api/v1/admin/posts/{postId}/poll
+Authorization: Bearer {admin-jwt-token}
+
+Response: 200 OK
+{
+    "options": [
+        {
+            "id": "uuid",
+            "optionText": "Option A",
+            "displayOrder": 0,
+            "voteCount": 7,
+            "percentage": 70.0
+        },
+        {
+            "id": "uuid",
+            "optionText": "Option B",
+            "displayOrder": 1,
+            "voteCount": 3,
+            "percentage": 30.0
+        }
+    ],
+    "totalVotes": 10
+}
+```
+
+**Effect:**
+
+- Returns full poll options with vote counts and percentages
+- Admins always see results regardless of whether the post is hidden
+- Works for both hidden and non-hidden poll posts
+
+**Error Responses:**
+
+- `400 Bad Request` - Post with specified ID is not a poll
 - `404 Not Found` - Post with specified ID does not exist
 
 **Access:** ADMIN or MODERATOR
@@ -1003,11 +1053,3 @@ Response: 200 OK
   "exp": 1706486400
 }
 ```
-
-**Important Notes:**
-
-1. ⚠️ Admin roles cannot be assigned via API (security measure)
-2. ⚠️ Must manually update database to grant admin privileges
-3. ⚠️ User must re-login after role change to get new JWT
-4. ✅ All admin actions are logged for audit purposes
-5. ✅ Soft-delete pattern preserves data for compliance
