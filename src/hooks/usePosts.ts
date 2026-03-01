@@ -34,6 +34,14 @@ export const usePostPoll = (postId: string, enabled = true) => {
   });
 };
 
+export const usePostImages = (postId: string, enabled = true) => {
+  return useQuery<{ postId: string; imageUrls: string[] }, Error>({
+    queryKey: [QUERY_KEYS.POST_IMAGES, postId],
+    queryFn: () => postService.getPostImages(postId),
+    enabled,
+  });
+};
+
 export const useHidePost = () => {
   const queryClient = useQueryClient();
 

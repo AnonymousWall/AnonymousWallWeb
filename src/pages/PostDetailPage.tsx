@@ -17,6 +17,7 @@ import {
   Card,
   CardContent,
   LinearProgress,
+  IconButton,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -24,12 +25,11 @@ import {
   Visibility as VisibilityIcon,
   VisibilityOff as VisibilityOffIcon,
   Poll as PollIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
-import { usePost, useHidePost, useUnhidePost, usePostPoll } from '../hooks/usePosts';
+import { usePost, useHidePost, useUnhidePost, usePostPoll, usePostImages } from '../hooks/usePosts';
 import { useUser, useBlockUser } from '../hooks/useUsers';
-import { ROUTES, SUCCESS_MESSAGES, QUERY_KEYS } from '../config/constants';
-import { ImageViewerButton } from '../components/ImageViewerButton';
-import { postService } from '../api/postService';
+import { ROUTES, SUCCESS_MESSAGES } from '../config/constants';
 import { format } from 'date-fns';
 
 export const PostDetailPage: React.FC = () => {
@@ -42,6 +42,10 @@ export const PostDetailPage: React.FC = () => {
   const { data: post, isLoading, error } = usePost(id || '', !!id);
   const { data: author } = useUser(post?.userId || '', !!post?.userId);
   const { data: pollData } = usePostPoll(id || '', !!id && post?.postType === 'poll');
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+
+  const { data: imagesData } = usePostImages(id || '', !!id);
+  const imageUrls = imagesData?.imageUrls ?? [];
 
   const hidePostMutation = useHidePost();
   const unhidePostMutation = useUnhidePost();
@@ -177,12 +181,37 @@ export const PostDetailPage: React.FC = () => {
             {post.content}
           </Typography>
 
-          <ImageViewerButton
-            entityId={post.id}
-            fetchImages={(id) => postService.getPostImages(id)}
-            queryKey={QUERY_KEYS.POST_IMAGES}
-            dialogTitle="Post Images"
-          />
+          {imageUrls.length > 0 && (
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                gap: 2,
+                mb: 3,
+              }}
+            >
+              {imageUrls.map((url) => (
+                <Box
+                  key={url}
+                  component="img"
+                  src={url}
+                  alt="Post image"
+                  onClick={() => setLightboxUrl(url)}
+                  sx={{
+                    width: '100%',
+                    height: 200,
+                    objectFit: 'cover',
+                    borderRadius: 1,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    cursor: 'pointer',
+                    transition: 'opacity 0.2s',
+                    '&:hover': { opacity: 0.85 },
+                  }}
+                />
+              ))}
+            </Box>
+          )}
 
           {post.postType === 'poll' && pollData && (
             <Box sx={{ mt: 3 }}>
@@ -312,6 +341,51 @@ export const PostDetailPage: React.FC = () => {
           </Card>
         </Box>
       </Paper>
+
+      {/* Image Lightbox */}
+      <Dialog
+        open={lightboxUrl !== null}
+        onClose={() => setLightboxUrl(null)}
+        maxWidth={false}
+        PaperProps={{
+          sx: {
+            bgcolor: 'black',
+            boxShadow: 'none',
+            m: 1,
+          },
+        }}
+      >
+        <Box sx={{ position: 'relative' }}>
+          <IconButton
+            onClick={() => setLightboxUrl(null)}
+            size="small"
+            sx={{
+              position: 'absolute',
+              top: 8,
+              right: 8,
+              zIndex: 1,
+              bgcolor: 'rgba(0,0,0,0.5)',
+              color: 'white',
+              '&:hover': { bgcolor: 'rgba(0,0,0,0.75)' },
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+          {lightboxUrl && (
+            <Box
+              component="img"
+              src={lightboxUrl}
+              alt="Full size"
+              sx={{
+                display: 'block',
+                maxWidth: '90vw',
+                maxHeight: '90vh',
+                objectFit: 'contain',
+              }}
+            />
+          )}
+        </Box>
+      </Dialog>
 
       {/* Hide/Unhide Confirmation Dialog */}
       <Dialog open={hideDialogOpen} onClose={() => setHideDialogOpen(false)}>
