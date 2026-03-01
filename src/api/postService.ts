@@ -1,6 +1,6 @@
 import { httpClient } from '../api/httpClient';
 import { API_ENDPOINTS } from '../config/constants';
-import type { Post, PaginatedResponse } from '../types';
+import type { Post, PaginatedResponse, PollData } from '../types';
 
 export const postService = {
   async getPosts(
@@ -31,6 +31,10 @@ export const postService = {
     return httpClient.get<{ postId: string; imageUrls: string[] }>(
       API_ENDPOINTS.ADMIN.POST_IMAGES(postId)
     );
+  },
+
+  async getPostPoll(postId: string): Promise<PollData> {
+    return httpClient.get<PollData>(API_ENDPOINTS.ADMIN.POST_POLL(postId));
   },
 
   async hidePost(postId: string): Promise<{ message: string }> {

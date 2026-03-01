@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { postService } from '../api/postService';
 import { QUERY_KEYS } from '../config/constants';
-import type { Post, PaginatedResponse } from '../types';
+import type { Post, PaginatedResponse, PollData } from '../types';
 
 export const usePosts = (
   page: number,
@@ -22,6 +22,14 @@ export const usePost = (postId: string, enabled = true) => {
   return useQuery<Post, Error>({
     queryKey: [QUERY_KEYS.POST, postId],
     queryFn: () => postService.getPostById(postId),
+    enabled,
+  });
+};
+
+export const usePostPoll = (postId: string, enabled = true) => {
+  return useQuery<PollData, Error>({
+    queryKey: [QUERY_KEYS.POST_POLL, postId],
+    queryFn: () => postService.getPostPoll(postId),
     enabled,
   });
 };

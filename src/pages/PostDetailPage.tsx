@@ -16,14 +16,16 @@ import {
   Divider,
   Card,
   CardContent,
+  LinearProgress,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
   Block as BlockIcon,
   Visibility as VisibilityIcon,
   VisibilityOff as VisibilityOffIcon,
+  Poll as PollIcon,
 } from '@mui/icons-material';
-import { usePost, useHidePost, useUnhidePost } from '../hooks/usePosts';
+import { usePost, useHidePost, useUnhidePost, usePostPoll } from '../hooks/usePosts';
 import { useUser, useBlockUser } from '../hooks/useUsers';
 import { ROUTES, SUCCESS_MESSAGES, QUERY_KEYS } from '../config/constants';
 import { ImageViewerButton } from '../components/ImageViewerButton';
@@ -39,6 +41,7 @@ export const PostDetailPage: React.FC = () => {
 
   const { data: post, isLoading, error } = usePost(id || '', !!id);
   const { data: author } = useUser(post?.userId || '', !!post?.userId);
+  const { data: pollData } = usePostPoll(id || '', !!id && post?.postType === 'poll');
 
   const hidePostMutation = useHidePost();
   const unhidePostMutation = useUnhidePost();
@@ -157,6 +160,12 @@ export const PostDetailPage: React.FC = () => {
               color={post.wall === 'national' ? 'primary' : 'secondary'}
               size="small"
             />
+            <Chip
+              icon={post.postType === 'poll' ? <PollIcon /> : undefined}
+              label={post.postType === 'poll' ? 'Poll' : 'Standard'}
+              color={post.postType === 'poll' ? 'info' : 'default'}
+              size="small"
+            />
             {post.hidden ? (
               <Chip icon={<VisibilityOffIcon />} label="Hidden" color="error" size="small" />
             ) : (
@@ -174,11 +183,51 @@ export const PostDetailPage: React.FC = () => {
             queryKey={QUERY_KEYS.POST_IMAGES}
             dialogTitle="Post Images"
           />
+
+          {post.postType === 'poll' && pollData && (
+            <Box sx={{ mt: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                Poll Results
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Total votes: {pollData.totalVotes}
+              </Typography>
+              {pollData.options.map((option) => (
+                <Box key={option.id} sx={{ mb: 2 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                    <Typography variant="body2">{option.optionText}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {option.voteCount} votes ({option.percentage.toFixed(1)}%)
+                    </Typography>
+                  </Box>
+                  <LinearProgress
+                    variant="determinate"
+                    value={option.percentage}
+                    sx={{ height: 8, borderRadius: 4 }}
+                  />
+                </Box>
+              ))}
+            </Box>
+          )}
         </Box>
 
         <Divider sx={{ my: 2 }} />
 
         <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+          <Card variant="outlined">
+            <CardContent>
+              <Typography color="text.secondary" gutterBottom>
+                Post Type
+              </Typography>
+              <Chip
+                icon={post.postType === 'poll' ? <PollIcon /> : undefined}
+                label={post.postType === 'poll' ? 'Poll' : 'Standard'}
+                color={post.postType === 'poll' ? 'info' : 'default'}
+                size="small"
+              />
+            </CardContent>
+          </Card>
+
           <Card variant="outlined">
             <CardContent>
               <Typography color="text.secondary" gutterBottom>
