@@ -16,18 +16,20 @@ import {
   Divider,
   Card,
   CardContent,
+  LinearProgress,
+  IconButton,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
   Block as BlockIcon,
   Visibility as VisibilityIcon,
   VisibilityOff as VisibilityOffIcon,
+  Poll as PollIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
-import { usePost, useHidePost, useUnhidePost } from '../hooks/usePosts';
+import { usePost, useHidePost, useUnhidePost, usePostPoll, usePostImages } from '../hooks/usePosts';
 import { useUser, useBlockUser } from '../hooks/useUsers';
-import { ROUTES, SUCCESS_MESSAGES, QUERY_KEYS } from '../config/constants';
-import { ImageViewerButton } from '../components/ImageViewerButton';
-import { postService } from '../api/postService';
+import { ROUTES, SUCCESS_MESSAGES } from '../config/constants';
 import { format } from 'date-fns';
 
 export const PostDetailPage: React.FC = () => {
@@ -39,6 +41,11 @@ export const PostDetailPage: React.FC = () => {
 
   const { data: post, isLoading, error } = usePost(id || '', !!id);
   const { data: author } = useUser(post?.userId || '', !!post?.userId);
+  const { data: pollData } = usePostPoll(id || '', !!id && post?.postType === 'poll');
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+
+  const { data: imagesData } = usePostImages(id || '', !!id);
+  const imageUrls = imagesData?.imageUrls ?? [];
 
   const hidePostMutation = useHidePost();
   const unhidePostMutation = useUnhidePost();
@@ -157,6 +164,12 @@ export const PostDetailPage: React.FC = () => {
               color={post.wall === 'national' ? 'primary' : 'secondary'}
               size="small"
             />
+            <Chip
+              icon={post.postType === 'poll' ? <PollIcon /> : undefined}
+              label={post.postType === 'poll' ? 'Poll' : 'Standard'}
+              color={post.postType === 'poll' ? 'info' : 'default'}
+              size="small"
+            />
             {post.hidden ? (
               <Chip icon={<VisibilityOffIcon />} label="Hidden" color="error" size="small" />
             ) : (
@@ -168,17 +181,82 @@ export const PostDetailPage: React.FC = () => {
             {post.content}
           </Typography>
 
-          <ImageViewerButton
-            entityId={post.id}
-            fetchImages={(id) => postService.getPostImages(id)}
-            queryKey={QUERY_KEYS.POST_IMAGES}
-            dialogTitle="Post Images"
-          />
+          {imageUrls.length > 0 && (
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                gap: 2,
+                mb: 3,
+              }}
+            >
+              {imageUrls.map((url) => (
+                <Box
+                  key={url}
+                  component="img"
+                  src={url}
+                  alt="Post image"
+                  onClick={() => setLightboxUrl(url)}
+                  sx={{
+                    width: '100%',
+                    height: 200,
+                    objectFit: 'cover',
+                    borderRadius: 1,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    cursor: 'pointer',
+                    transition: 'opacity 0.2s',
+                    '&:hover': { opacity: 0.85 },
+                  }}
+                />
+              ))}
+            </Box>
+          )}
+
+          {post.postType === 'poll' && pollData && (
+            <Box sx={{ mt: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                Poll Results
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Total votes: {pollData.totalVotes}
+              </Typography>
+              {pollData.options.map((option) => (
+                <Box key={option.id} sx={{ mb: 2 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                    <Typography variant="body2">{option.optionText}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {option.voteCount} votes ({option.percentage.toFixed(1)}%)
+                    </Typography>
+                  </Box>
+                  <LinearProgress
+                    variant="determinate"
+                    value={option.percentage}
+                    sx={{ height: 8, borderRadius: 4 }}
+                  />
+                </Box>
+              ))}
+            </Box>
+          )}
         </Box>
 
         <Divider sx={{ my: 2 }} />
 
         <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+          <Card variant="outlined">
+            <CardContent>
+              <Typography color="text.secondary" gutterBottom>
+                Post Type
+              </Typography>
+              <Chip
+                icon={post.postType === 'poll' ? <PollIcon /> : undefined}
+                label={post.postType === 'poll' ? 'Poll' : 'Standard'}
+                color={post.postType === 'poll' ? 'info' : 'default'}
+                size="small"
+              />
+            </CardContent>
+          </Card>
+
           <Card variant="outlined">
             <CardContent>
               <Typography color="text.secondary" gutterBottom>
@@ -263,6 +341,51 @@ export const PostDetailPage: React.FC = () => {
           </Card>
         </Box>
       </Paper>
+
+      {/* Image Lightbox */}
+      <Dialog
+        open={lightboxUrl !== null}
+        onClose={() => setLightboxUrl(null)}
+        maxWidth={false}
+        PaperProps={{
+          sx: {
+            bgcolor: 'black',
+            boxShadow: 'none',
+            m: 1,
+          },
+        }}
+      >
+        <Box sx={{ position: 'relative' }}>
+          <IconButton
+            onClick={() => setLightboxUrl(null)}
+            size="small"
+            sx={{
+              position: 'absolute',
+              top: 8,
+              right: 8,
+              zIndex: 1,
+              bgcolor: 'rgba(0,0,0,0.5)',
+              color: 'white',
+              '&:hover': { bgcolor: 'rgba(0,0,0,0.75)' },
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+          {lightboxUrl && (
+            <Box
+              component="img"
+              src={lightboxUrl}
+              alt="Full size"
+              sx={{
+                display: 'block',
+                maxWidth: '90vw',
+                maxHeight: '90vh',
+                objectFit: 'contain',
+              }}
+            />
+          )}
+        </Box>
+      </Dialog>
 
       {/* Hide/Unhide Confirmation Dialog */}
       <Dialog open={hideDialogOpen} onClose={() => setHideDialogOpen(false)}>

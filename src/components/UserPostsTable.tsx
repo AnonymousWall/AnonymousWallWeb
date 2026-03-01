@@ -15,6 +15,7 @@ import {
   CircularProgress,
   Alert,
 } from '@mui/material';
+import { Poll as PollIcon } from '@mui/icons-material';
 import { useUserPosts } from '../hooks/useUsers';
 import { PAGINATION_CONFIG, QUERY_KEYS } from '../config/constants';
 import { format } from 'date-fns';
@@ -111,6 +112,7 @@ export const UserPostsTable: React.FC<UserPostsTableProps> = ({ userId }) => {
                   </TableSortLabel>
                 </TableCell>
                 <TableCell>Status</TableCell>
+                <TableCell>Type</TableCell>
                 <TableCell>
                   <TableSortLabel
                     active={sortBy === 'createdAt'}
@@ -126,13 +128,13 @@ export const UserPostsTable: React.FC<UserPostsTableProps> = ({ userId }) => {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={8} align="center">
+                  <TableCell colSpan={9} align="center">
                     <CircularProgress />
                   </TableCell>
                 </TableRow>
               ) : !data || data.data.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} align="center">
+                  <TableCell colSpan={9} align="center">
                     No posts found
                   </TableCell>
                 </TableRow>
@@ -159,6 +161,14 @@ export const UserPostsTable: React.FC<UserPostsTableProps> = ({ userId }) => {
                         label={post.hidden ? 'Hidden' : 'Visible'}
                         size="small"
                         color={post.hidden ? 'error' : 'success'}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        icon={post.postType === 'poll' ? <PollIcon /> : undefined}
+                        label={post.postType === 'poll' ? 'Poll' : 'Standard'}
+                        size="small"
+                        color={post.postType === 'poll' ? 'info' : 'default'}
                       />
                     </TableCell>
                     <TableCell>{format(new Date(post.createdAt), 'MMM d, yyyy HH:mm')}</TableCell>

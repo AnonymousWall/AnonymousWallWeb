@@ -29,6 +29,7 @@ import {
 import {
   Visibility as VisibilityIcon,
   VisibilityOff as VisibilityOffIcon,
+  Poll as PollIcon,
 } from '@mui/icons-material';
 import { usePosts, useHidePost, useUnhidePost } from '../hooks/usePosts';
 import { PAGINATION_CONFIG, SUCCESS_MESSAGES, QUERY_KEYS } from '../config/constants';
@@ -206,6 +207,7 @@ export const PostsPage: React.FC = () => {
                   </TableSortLabel>
                 </TableCell>
                 <TableCell>Status</TableCell>
+                <TableCell>Type</TableCell>
                 <TableCell>Images</TableCell>
                 <TableCell>
                   <TableSortLabel
@@ -222,13 +224,13 @@ export const PostsPage: React.FC = () => {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={10} align="center">
+                  <TableCell colSpan={11} align="center">
                     <CircularProgress />
                   </TableCell>
                 </TableRow>
               ) : !data || data.data.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={10} align="center">
+                  <TableCell colSpan={11} align="center">
                     No posts found
                   </TableCell>
                 </TableRow>
@@ -258,6 +260,14 @@ export const PostsPage: React.FC = () => {
                         label={post.hidden ? 'Hidden' : 'Visible'}
                         size="small"
                         color={post.hidden ? 'error' : 'success'}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        icon={post.postType === 'poll' ? <PollIcon /> : undefined}
+                        label={post.postType === 'poll' ? 'Poll' : 'Standard'}
+                        size="small"
+                        color={post.postType === 'poll' ? 'info' : 'default'}
                       />
                     </TableCell>
                     <TableCell>{format(new Date(post.createdAt), 'MMM d, yyyy HH:mm')}</TableCell>
@@ -356,6 +366,9 @@ export const PostsPage: React.FC = () => {
               </Typography>
               <Typography variant="body2" gutterBottom>
                 <strong>Status:</strong> {selectedPost.hidden ? 'Hidden' : 'Visible'}
+              </Typography>
+              <Typography variant="body2" gutterBottom>
+                <strong>Type:</strong> {selectedPost.postType === 'poll' ? 'Poll' : 'Standard'}
               </Typography>
               <Typography variant="body2" gutterBottom>
                 <strong>Created:</strong>{' '}

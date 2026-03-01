@@ -24,8 +24,24 @@ export interface Post {
   likeCount: number;
   commentCount: number;
   hidden: boolean;
+  imageUrls?: string[];
+  postType: 'standard' | 'poll';
+  totalVotes: number;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface PollOption {
+  id: string;
+  optionText: string;
+  displayOrder: number;
+  voteCount: number;
+  percentage: number;
+}
+
+export interface PollData {
+  options: PollOption[];
+  totalVotes: number;
 }
 
 // Comment types
