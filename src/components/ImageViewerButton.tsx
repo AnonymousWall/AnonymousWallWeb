@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import { PhotoLibrary as PhotoLibraryIcon, Close as CloseIcon } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
+import { AuthenticatedImage } from './AuthenticatedImage';
 
 interface ImageViewerButtonProps {
   /** The entity ID used for fetching images and cache keying */
@@ -70,9 +71,8 @@ export const ImageViewerButton: React.FC<ImageViewerButtonProps> = ({
             }}
           >
             {imageUrls.map((url, index) => (
-              <Box
+              <AuthenticatedImage
                 key={index}
-                component="img"
                 src={url}
                 alt={`Image ${index + 1}`}
                 onClick={() => setLightboxUrl(url)}
@@ -126,8 +126,7 @@ export const ImageViewerButton: React.FC<ImageViewerButtonProps> = ({
             <CloseIcon />
           </IconButton>
           {lightboxUrl && (
-            <Box
-              component="img"
+            <AuthenticatedImage
               src={lightboxUrl}
               alt="Full size"
               sx={{
