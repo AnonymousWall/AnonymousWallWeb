@@ -99,6 +99,7 @@ export const API_ENDPOINTS = {
     SCHOOL_DOMAINS: '/admin/school-domains',
     DELETE_SCHOOL_DOMAIN: (id: string) => `/admin/school-domains/${id}`,
   },
+  MEDIA: (objectName: string) => `/media/${objectName}`,
 } as const;
 
 // Query Keys for React Query

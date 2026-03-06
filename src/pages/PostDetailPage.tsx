@@ -30,6 +30,7 @@ import {
 import { usePost, useHidePost, useUnhidePost, usePostPoll, usePostImages } from '../hooks/usePosts';
 import { useUser, useBlockUser } from '../hooks/useUsers';
 import { ROUTES, SUCCESS_MESSAGES } from '../config/constants';
+import { AuthenticatedImage } from '../components/AuthenticatedImage';
 import { format } from 'date-fns';
 
 export const PostDetailPage: React.FC = () => {
@@ -191,9 +192,8 @@ export const PostDetailPage: React.FC = () => {
               }}
             >
               {imageUrls.map((url) => (
-                <Box
+                <AuthenticatedImage
                   key={url}
-                  component="img"
                   src={url}
                   alt="Post image"
                   onClick={() => setLightboxUrl(url)}
@@ -372,8 +372,7 @@ export const PostDetailPage: React.FC = () => {
             <CloseIcon />
           </IconButton>
           {lightboxUrl && (
-            <Box
-              component="img"
+            <AuthenticatedImage
               src={lightboxUrl}
               alt="Full size"
               sx={{

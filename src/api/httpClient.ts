@@ -195,6 +195,14 @@ class HttpClient {
     const response = await this.client.patch<T>(url, data);
     return response.data;
   }
+
+  /**
+   * GET request returning raw Blob (for authenticated media/image fetching)
+   */
+  async getBlob(url: string): Promise<Blob> {
+    const response = await this.client.get<Blob>(url, { responseType: 'blob' });
+    return response.data;
+  }
 }
 
 // Export singleton instance

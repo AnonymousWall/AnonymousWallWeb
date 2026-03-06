@@ -15,6 +15,7 @@ import {
 import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import { useConversationMessages } from '../hooks/useConversations';
 import { PAGINATION_CONFIG } from '../config/constants';
+import { AuthenticatedImage } from '../components/AuthenticatedImage';
 import { format } from 'date-fns';
 
 export const ConversationDetailPage: React.FC = () => {
@@ -79,8 +80,7 @@ export const ConversationDetailPage: React.FC = () => {
                         Sender: {message.senderId}
                       </Typography>
                       {message.imageUrl ? (
-                        <Box
-                          component="img"
+                        <AuthenticatedImage
                           src={message.imageUrl}
                           alt={`Image from ${message.senderId}`}
                           sx={{
