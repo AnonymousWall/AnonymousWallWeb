@@ -80,7 +80,7 @@ class HttpClient {
               resolve: (token: string) => {
                 originalRequest.headers.Authorization = `Bearer ${token}`;
                 originalRequest._retry = true;
-                resolve(this.client(originalRequest));
+                this.client(originalRequest).then(resolve).catch(reject);
               },
               reject,
             });

@@ -3,10 +3,6 @@ import { httpClient } from '../api/httpClient';
 import { API_CONFIG, API_ENDPOINTS } from '../config/constants';
 import type { LoginRequest, LoginResponse } from '../types';
 
-export interface TokenRefreshRequest {
-  refreshToken: string;
-}
-
 export interface TokenRefreshResponse {
   accessToken: string;
   refreshToken: string;
@@ -30,9 +26,11 @@ export const authService = {
    * Exchange a refresh token for a new token pair
    */
   async refreshToken(refreshToken: string): Promise<TokenRefreshResponse> {
+    // Use axios directly so a 401 from /auth/refresh does not recurse through the
+    // shared client interceptor and trigger an infinite refresh loop.
     const response = await axios.post<TokenRefreshResponse>(
       `${API_CONFIG.BASE_URL}${API_ENDPOINTS.AUTH.REFRESH}`,
-      { refreshToken } satisfies TokenRefreshRequest,
+      { refreshToken },
       {
         headers: {
           'Content-Type': 'application/json',

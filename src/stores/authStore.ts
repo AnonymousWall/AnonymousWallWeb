@@ -25,7 +25,7 @@ interface AuthState {
   clearError: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   token: null,
   user: null,
   isAuthenticated: false,
@@ -69,10 +69,11 @@ export const useAuthStore = create<AuthState>((set) => ({
    * Logout user
    */
   logout: (revokeServerToken = true) => {
-    const token = useAuthStore.getState().token;
+    const token = get().token;
 
     if (revokeServerToken && token) {
-      void authService.logout(token).catch(() => {
+      void authService.logout(token).catch((error) => {
+        console.error('Failed to revoke refresh tokens during logout:', error);
         // Intentionally swallowed — local logout proceeds regardless
       });
     }
