@@ -3,10 +3,34 @@ import { httpClient } from '../api/httpClient';
 import { API_CONFIG, API_ENDPOINTS } from '../config/constants';
 import type { LoginRequest, LoginResponse } from '../types';
 
+type TokenPayload = {
+  accessToken?: string;
+  refreshToken?: string;
+  access_token?: string;
+  refresh_token?: string;
+};
+
 export interface TokenRefreshResponse {
   accessToken: string;
-  refreshToken: string;
+  refreshToken?: string;
 }
+
+const normalizeTokenPayload = <T extends TokenPayload>(payload: T): T & TokenRefreshResponse => {
+  const accessToken = payload.accessToken ?? payload.access_token;
+  const refreshToken = payload.refreshToken ?? payload.refresh_token;
+
+  if (!accessToken) {
+    throw new Error(
+      'Missing access token in authentication response (expected accessToken or access_token)'
+    );
+  }
+
+  return {
+    ...payload,
+    accessToken,
+    refreshToken,
+  };
+};
 
 /**
  * Authentication Service
@@ -18,8 +42,11 @@ export const authService = {
    * Login with email and password
    */
   async login(credentials: LoginRequest): Promise<LoginResponse> {
-    const response = await httpClient.post<LoginResponse>(API_ENDPOINTS.AUTH.LOGIN, credentials);
-    return response;
+    const response = await httpClient.post<LoginResponse & TokenPayload>(
+      API_ENDPOINTS.AUTH.LOGIN,
+      credentials
+    );
+    return normalizeTokenPayload(response);
   },
 
   /**
@@ -28,7 +55,7 @@ export const authService = {
   async refreshToken(refreshToken: string): Promise<TokenRefreshResponse> {
     // Use axios directly so a 401 from /auth/refresh does not recurse through the
     // shared client interceptor and trigger an infinite refresh loop.
-    const response = await axios.post<TokenRefreshResponse>(
+    const response = await axios.post<TokenRefreshResponse & TokenPayload>(
       `${API_CONFIG.BASE_URL}${API_ENDPOINTS.AUTH.REFRESH}`,
       { refreshToken },
       {
@@ -38,7 +65,7 @@ export const authService = {
       }
     );
 
-    return response.data;
+    return normalizeTokenPayload(response.data);
   },
 
   /**

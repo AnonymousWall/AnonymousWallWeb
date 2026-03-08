@@ -99,8 +99,9 @@ class HttpClient {
 
           const { authService } = await import('./authService');
           const tokenResponse = await authService.refreshToken(storedRefreshToken);
+          const updatedRefreshToken = tokenResponse.refreshToken ?? storedRefreshToken;
 
-          localStorage.setItem(REFRESH_TOKEN_KEY, tokenResponse.refreshToken);
+          localStorage.setItem(REFRESH_TOKEN_KEY, updatedRefreshToken);
 
           const { useAuthStore } = await import('../stores/authStore');
           useAuthStore.getState().setAccessToken(tokenResponse.accessToken);
