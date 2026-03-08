@@ -11,7 +11,6 @@ import {
   ERROR_MESSAGES,
   REFRESH_TOKEN_KEY,
 } from '../config/constants';
-import { isUsableTokenValue } from '../utils/authTokenUtils';
 
 type PendingRequest = {
   resolve: (token: string) => void;
@@ -94,15 +93,13 @@ class HttpClient {
 
         try {
           const storedRefreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
-          if (!isUsableTokenValue(storedRefreshToken)) {
+          if (!storedRefreshToken) {
             throw new Error('No refresh token available');
           }
 
           const { authService } = await import('./authService');
           const tokenResponse = await authService.refreshToken(storedRefreshToken);
-          const updatedRefreshToken = isUsableTokenValue(tokenResponse.refreshToken)
-            ? tokenResponse.refreshToken
-            : storedRefreshToken;
+          const updatedRefreshToken = tokenResponse.refreshToken ?? storedRefreshToken;
 
           localStorage.setItem(REFRESH_TOKEN_KEY, updatedRefreshToken);
 

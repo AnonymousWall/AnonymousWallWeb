@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import { authService } from '../api/authService';
 import { AUTH_CONFIG, AUTH_TOKEN_KEY, REFRESH_TOKEN_KEY } from '../config/constants';
 import type { User, LoginRequest } from '../types';
-import { decodeJwtPayload, isUsableTokenValue } from '../utils/authTokenUtils';
 
 /**
  * Auth Store
@@ -19,21 +18,11 @@ interface AuthState {
   // Actions
   login: (credentials: LoginRequest) => Promise<void>;
   logout: (revokeServerToken?: boolean) => void;
-  loadUser: () => Promise<void>;
+  loadUser: () => void;
   setAccessToken: (token: string) => void;
   setError: (error: string | null) => void;
   clearError: () => void;
 }
-
-const isExpiredAccessToken = (token: string): boolean => {
-  const payload = decodeJwtPayload(token);
-  return typeof payload?.exp === 'number' && payload.exp * 1000 < Date.now();
-};
-
-let hydrationRefreshPromise: Promise<{
-  accessToken: string;
-  refreshToken?: string;
-}> | null = null;
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   token: null,
@@ -103,35 +92,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   /**
    * Load user from localStorage
    */
-  loadUser: async () => {
+  loadUser: () => {
     try {
       const token = localStorage.getItem(AUTH_TOKEN_KEY);
       const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
       const storedUser = localStorage.getItem(AUTH_CONFIG.USER_KEY);
 
-      if (isUsableTokenValue(token) && isUsableTokenValue(refreshToken) && storedUser) {
+      if (token && refreshToken && storedUser) {
         const user = JSON.parse(storedUser) as User;
-
-        if (isExpiredAccessToken(token)) {
-          hydrationRefreshPromise ??= authService.refreshToken(refreshToken).finally(() => {
-            hydrationRefreshPromise = null;
-          });
-
-          const refreshedTokens = await hydrationRefreshPromise;
-          const nextRefreshToken = refreshedTokens.refreshToken ?? refreshToken;
-
-          localStorage.setItem(AUTH_TOKEN_KEY, refreshedTokens.accessToken);
-          localStorage.setItem(REFRESH_TOKEN_KEY, nextRefreshToken);
-
-          set({
-            token: refreshedTokens.accessToken,
-            user,
-            isAuthenticated: true,
-            isLoading: false,
-          });
-          return;
-        }
-
         set({
           token,
           user,
