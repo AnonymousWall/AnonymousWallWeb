@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { authService } from '../api/authService';
 import { AUTH_CONFIG, AUTH_TOKEN_KEY, REFRESH_TOKEN_KEY } from '../config/constants';
 import type { User, LoginRequest } from '../types';
+import { isUsableTokenValue } from '../utils/authTokenUtils';
 
 /**
  * Auth Store
@@ -98,7 +99,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
       const storedUser = localStorage.getItem(AUTH_CONFIG.USER_KEY);
 
-      if (token && refreshToken && storedUser) {
+      if (isUsableTokenValue(token) && isUsableTokenValue(refreshToken) && storedUser) {
         const user = JSON.parse(storedUser) as User;
         set({
           token,

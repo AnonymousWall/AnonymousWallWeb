@@ -2,6 +2,7 @@ import axios from 'axios';
 import { httpClient } from '../api/httpClient';
 import { API_CONFIG, API_ENDPOINTS } from '../config/constants';
 import type { LoginRequest, LoginResponse } from '../types';
+import { normalizeTokenValue } from '../utils/authTokenUtils';
 
 type TokenPayload = {
   accessToken?: string;
@@ -16,8 +17,8 @@ export interface TokenRefreshResponse {
 }
 
 const normalizeTokenPayload = <T extends TokenPayload>(payload: T): T & TokenRefreshResponse => {
-  const accessToken = payload.accessToken ?? payload.access_token;
-  const refreshToken = payload.refreshToken ?? payload.refresh_token;
+  const accessToken = normalizeTokenValue(payload.accessToken ?? payload.access_token);
+  const refreshToken = normalizeTokenValue(payload.refreshToken ?? payload.refresh_token);
 
   if (!accessToken) {
     throw new Error(
@@ -46,7 +47,23 @@ export const authService = {
       API_ENDPOINTS.AUTH.LOGIN,
       credentials
     );
-    return normalizeTokenPayload(response);
+    const normalizedResponse = normalizeTokenPayload(response);
+
+    if (!normalizedResponse.refreshToken) {
+      throw new Error(
+        'Missing refresh token in login response (expected refreshToken or refresh_token)'
+      );
+    }
+
+    if (!response.user) {
+      throw new Error('Missing user in login response');
+    }
+
+    return {
+      accessToken: normalizedResponse.accessToken,
+      refreshToken: normalizedResponse.refreshToken,
+      user: response.user,
+    };
   },
 
   /**
