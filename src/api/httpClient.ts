@@ -24,7 +24,6 @@ type PendingRequest = {
 
 class HttpClient {
   private client: AxiosInstance;
-  private token: string | null = null;
   private isRefreshing = false;
   private pendingQueue: PendingRequest[] = [];
 
@@ -38,7 +37,6 @@ class HttpClient {
     });
 
     this.setupInterceptors();
-    this.loadToken();
   }
 
   /**
@@ -48,8 +46,9 @@ class HttpClient {
     // Request interceptor
     this.client.interceptors.request.use(
       (config: InternalAxiosRequestConfig) => {
-        if (this.token && config.headers) {
-          config.headers.Authorization = `Bearer ${this.token}`;
+        const token = localStorage.getItem(AUTH_TOKEN_KEY);
+        if (token && config.headers) {
+          config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
       },
@@ -76,6 +75,7 @@ class HttpClient {
 
         if (this.isRefreshing) {
           return new Promise((resolve, reject) => {
+            originalRequest.headers = originalRequest.headers ?? {};
             this.pendingQueue.push({
               resolve: (token: string) => {
                 originalRequest.headers.Authorization = `Bearer ${token}`;
@@ -89,6 +89,7 @@ class HttpClient {
 
         this.isRefreshing = true;
         originalRequest._retry = true;
+        originalRequest.headers = originalRequest.headers ?? {};
 
         try {
           const storedRefreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
@@ -134,20 +135,9 @@ class HttpClient {
   }
 
   /**
-   * Load token from localStorage
-   */
-  private loadToken(): void {
-    const token = localStorage.getItem(AUTH_TOKEN_KEY);
-    if (token) {
-      this.token = token;
-    }
-  }
-
-  /**
    * Set authentication token
    */
   setToken(token: string): void {
-    this.token = token;
     localStorage.setItem(AUTH_TOKEN_KEY, token);
   }
 
@@ -155,14 +145,13 @@ class HttpClient {
    * Get current token
    */
   getToken(): string | null {
-    return this.token;
+    return localStorage.getItem(AUTH_TOKEN_KEY);
   }
 
   /**
    * Clear authentication token
    */
   clearToken(): void {
-    this.token = null;
     localStorage.removeItem(AUTH_TOKEN_KEY);
   }
 

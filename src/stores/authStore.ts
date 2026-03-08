@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { authService } from '../api/authService';
-import { httpClient } from '../api/httpClient';
-import { AUTH_CONFIG } from '../config/constants';
+import { AUTH_CONFIG, AUTH_TOKEN_KEY, REFRESH_TOKEN_KEY } from '../config/constants';
 import type { User, LoginRequest } from '../types';
 
 /**
@@ -41,8 +40,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       const response = await authService.login(credentials);
 
-      httpClient.setToken(response.accessToken);
-      localStorage.setItem(AUTH_CONFIG.REFRESH_TOKEN_KEY, response.refreshToken);
+      localStorage.setItem(AUTH_TOKEN_KEY, response.accessToken);
+      localStorage.setItem(REFRESH_TOKEN_KEY, response.refreshToken);
       localStorage.setItem(AUTH_CONFIG.USER_KEY, JSON.stringify(response.user));
 
       set({
@@ -78,7 +77,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
     }
 
-    httpClient.clearAuth();
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
+    localStorage.removeItem(AUTH_CONFIG.USER_KEY);
     set({
       token: null,
       user: null,
@@ -93,8 +94,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
    */
   loadUser: () => {
     try {
-      const token = httpClient.getToken();
-      const refreshToken = localStorage.getItem(AUTH_CONFIG.REFRESH_TOKEN_KEY);
+      const token = localStorage.getItem(AUTH_TOKEN_KEY);
+      const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
       const storedUser = localStorage.getItem(AUTH_CONFIG.USER_KEY);
 
       if (token && refreshToken && storedUser) {
@@ -106,7 +107,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           isLoading: false,
         });
       } else {
-        httpClient.clearAuth();
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+        localStorage.removeItem(REFRESH_TOKEN_KEY);
+        localStorage.removeItem(AUTH_CONFIG.USER_KEY);
         set({
           token: null,
           user: null,
@@ -116,7 +119,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
     } catch (error) {
       console.error('Failed to load user:', error);
-      httpClient.clearAuth();
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+      localStorage.removeItem(REFRESH_TOKEN_KEY);
+      localStorage.removeItem(AUTH_CONFIG.USER_KEY);
       set({
         token: null,
         user: null,
@@ -130,7 +135,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
    * Update access token after silent refresh
    */
   setAccessToken: (token: string) => {
-    httpClient.setToken(token);
+    localStorage.setItem(AUTH_TOKEN_KEY, token);
     set({ token });
   },
 
