@@ -107,6 +107,7 @@ export interface LoginRequest {
 export interface LoginResponse {
   user: User;
   accessToken: string;
+  refreshToken: string;
 }
 
 // Statistics types

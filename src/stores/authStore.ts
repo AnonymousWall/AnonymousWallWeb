@@ -10,6 +10,7 @@ import type { User, LoginRequest } from '../types';
  */
 
 interface AuthState {
+  token: string | null;
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -17,13 +18,15 @@ interface AuthState {
 
   // Actions
   login: (credentials: LoginRequest) => Promise<void>;
-  logout: () => void;
+  logout: (revokeServerToken?: boolean) => void;
   loadUser: () => void;
+  setAccessToken: (token: string) => void;
   setError: (error: string | null) => void;
   clearError: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
+  token: null,
   user: null,
   isAuthenticated: false,
   isLoading: true,
@@ -38,13 +41,12 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       const response = await authService.login(credentials);
 
-      // Save token and user
-      // Note: Authorization is handled by the backend via JWT token validation
-      // The backend will reject unauthorized requests with 401/403 status codes
       httpClient.setToken(response.accessToken);
+      localStorage.setItem(AUTH_CONFIG.REFRESH_TOKEN_KEY, response.refreshToken);
       localStorage.setItem(AUTH_CONFIG.USER_KEY, JSON.stringify(response.user));
 
       set({
+        token: response.accessToken,
         user: response.user,
         isAuthenticated: true,
         isLoading: false,
@@ -53,6 +55,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Login failed';
       set({
+        token: null,
         user: null,
         isAuthenticated: false,
         isLoading: false,
@@ -65,10 +68,18 @@ export const useAuthStore = create<AuthState>((set) => ({
   /**
    * Logout user
    */
-  logout: () => {
-    authService.logout();
-    localStorage.removeItem(AUTH_CONFIG.USER_KEY);
+  logout: (revokeServerToken = true) => {
+    const token = useAuthStore.getState().token;
+
+    if (revokeServerToken && token) {
+      void authService.logout(token).catch(() => {
+        // Intentionally swallowed — local logout proceeds regardless
+      });
+    }
+
+    httpClient.clearAuth();
     set({
+      token: null,
       user: null,
       isAuthenticated: false,
       isLoading: false,
@@ -82,24 +93,44 @@ export const useAuthStore = create<AuthState>((set) => ({
   loadUser: () => {
     try {
       const token = httpClient.getToken();
+      const refreshToken = localStorage.getItem(AUTH_CONFIG.REFRESH_TOKEN_KEY);
       const storedUser = localStorage.getItem(AUTH_CONFIG.USER_KEY);
 
-      if (token && storedUser) {
+      if (token && refreshToken && storedUser) {
         const user = JSON.parse(storedUser) as User;
         set({
+          token,
           user,
           isAuthenticated: true,
           isLoading: false,
         });
       } else {
-        set({ isLoading: false });
+        httpClient.clearAuth();
+        set({
+          token: null,
+          user: null,
+          isAuthenticated: false,
+          isLoading: false,
+        });
       }
     } catch (error) {
       console.error('Failed to load user:', error);
       httpClient.clearAuth();
-      localStorage.removeItem(AUTH_CONFIG.USER_KEY);
-      set({ isLoading: false });
+      set({
+        token: null,
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+      });
     }
+  },
+
+  /**
+   * Update access token after silent refresh
+   */
+  setAccessToken: (token: string) => {
+    httpClient.setToken(token);
+    set({ token });
   },
 
   /**
