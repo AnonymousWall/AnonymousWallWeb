@@ -113,25 +113,41 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         const user = JSON.parse(storedUser) as User;
 
         if (isExpiredAccessToken(token)) {
-          hydrationRefreshPromise ??= authService.refreshToken(refreshToken).finally(() => {
-            hydrationRefreshPromise = null;
-          });
+          set({ isLoading: true });
 
-          const refreshedTokens = await hydrationRefreshPromise;
-          const nextRefreshToken = isUsableTokenValue(refreshedTokens.refreshToken)
-            ? refreshedTokens.refreshToken
-            : refreshToken;
+          try {
+            hydrationRefreshPromise ??= authService.refreshToken(refreshToken).finally(() => {
+              hydrationRefreshPromise = null;
+            });
 
-          localStorage.setItem(AUTH_TOKEN_KEY, refreshedTokens.accessToken);
-          localStorage.setItem(REFRESH_TOKEN_KEY, nextRefreshToken);
+            const refreshedTokens = await hydrationRefreshPromise;
+            const nextRefreshToken = isUsableTokenValue(refreshedTokens.refreshToken)
+              ? refreshedTokens.refreshToken
+              : refreshToken;
 
-          set({
-            token: refreshedTokens.accessToken,
-            user,
-            isAuthenticated: true,
-            isLoading: false,
-          });
-          return;
+            localStorage.setItem(AUTH_TOKEN_KEY, refreshedTokens.accessToken);
+            localStorage.setItem(REFRESH_TOKEN_KEY, nextRefreshToken);
+
+            set({
+              token: refreshedTokens.accessToken,
+              user,
+              isAuthenticated: true,
+              isLoading: false,
+            });
+            return;
+          } catch (error) {
+            console.error('Failed to refresh expired token during auth hydration:', error);
+            localStorage.removeItem(AUTH_TOKEN_KEY);
+            localStorage.removeItem(REFRESH_TOKEN_KEY);
+            localStorage.removeItem(AUTH_CONFIG.USER_KEY);
+            set({
+              token: null,
+              user: null,
+              isAuthenticated: false,
+              isLoading: false,
+            });
+            return;
+          }
         }
 
         set({
