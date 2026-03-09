@@ -50,7 +50,7 @@ function App() {
 
   // Load user on app initialization
   useEffect(() => {
-    loadUser();
+    void loadUser();
   }, [loadUser]);
 
   return (

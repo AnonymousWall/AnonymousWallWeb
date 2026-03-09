@@ -1,5 +1,22 @@
-import axios, { type AxiosInstance, AxiosError, type InternalAxiosRequestConfig } from 'axios';
-import { API_CONFIG, AUTH_CONFIG, ERROR_MESSAGES } from '../config/constants';
+import axios, {
+  type AxiosInstance,
+  AxiosError,
+  type AxiosRequestConfig,
+  type InternalAxiosRequestConfig,
+} from 'axios';
+import {
+  API_CONFIG,
+  AUTH_CONFIG,
+  AUTH_TOKEN_KEY,
+  ERROR_MESSAGES,
+  REFRESH_TOKEN_KEY,
+} from '../config/constants';
+import { isUsableTokenValue } from '../utils/authTokenUtils';
+
+type PendingRequest = {
+  resolve: (token: string) => void;
+  reject: (error: unknown) => void;
+};
 
 /**
  * HTTP Client
@@ -8,7 +25,8 @@ import { API_CONFIG, AUTH_CONFIG, ERROR_MESSAGES } from '../config/constants';
 
 class HttpClient {
   private client: AxiosInstance;
-  private token: string | null = null;
+  private isRefreshing = false;
+  private pendingQueue: PendingRequest[] = [];
 
   constructor() {
     this.client = axios.create({
@@ -20,7 +38,6 @@ class HttpClient {
     });
 
     this.setupInterceptors();
-    this.loadToken();
   }
 
   /**
@@ -30,8 +47,9 @@ class HttpClient {
     // Request interceptor
     this.client.interceptors.request.use(
       (config: InternalAxiosRequestConfig) => {
-        if (this.token && config.headers) {
-          config.headers.Authorization = `Bearer ${this.token}`;
+        const token = localStorage.getItem(AUTH_TOKEN_KEY);
+        if (token && config.headers) {
+          config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
       },
@@ -46,64 +64,99 @@ class HttpClient {
       async (error: AxiosError) => {
         const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-        // Handle 401 Unauthorized
-        if (error.response?.status === 401) {
-          if (!originalRequest._retry) {
-            originalRequest._retry = true;
-
-            // Try to refresh token
-            try {
-              await this.refreshToken();
-              return this.client(originalRequest);
-            } catch {
-              // Refresh failed, clear auth and redirect to login
-              this.clearAuth();
-              window.location.href = '/login';
-              return Promise.reject(error);
-            }
-          } else {
-            // Refresh already attempted, clear auth
-            this.clearAuth();
-            window.location.href = '/login';
-          }
+        if (error.response?.status !== 401 || !originalRequest) {
+          return Promise.reject(this.handleError(error));
         }
 
-        return Promise.reject(this.handleError(error));
+        if (originalRequest._retry) {
+          const { useAuthStore } = await import('../stores/authStore');
+          useAuthStore.getState().logout(false);
+          return Promise.reject(error);
+        }
+
+        if (this.isRefreshing) {
+          return new Promise((resolve, reject) => {
+            originalRequest.headers = originalRequest.headers ?? {};
+            this.pendingQueue.push({
+              resolve: (token: string) => {
+                originalRequest.headers.Authorization = `Bearer ${token}`;
+                originalRequest._retry = true;
+                this.client(originalRequest).then(resolve).catch(reject);
+              },
+              reject,
+            });
+          });
+        }
+
+        this.isRefreshing = true;
+        originalRequest._retry = true;
+        originalRequest.headers = originalRequest.headers ?? {};
+
+        try {
+          const storedRefreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+          if (!isUsableTokenValue(storedRefreshToken)) {
+            throw new Error('No refresh token available');
+          }
+
+          const { authService } = await import('./authService');
+          const tokenResponse = await authService.refreshToken(storedRefreshToken);
+          const updatedRefreshToken = isUsableTokenValue(tokenResponse.refreshToken)
+            ? tokenResponse.refreshToken
+            : storedRefreshToken;
+
+          localStorage.setItem(REFRESH_TOKEN_KEY, updatedRefreshToken);
+
+          const { useAuthStore } = await import('../stores/authStore');
+          useAuthStore.getState().setAccessToken(tokenResponse.accessToken);
+
+          this.drainQueue(null, tokenResponse.accessToken);
+
+          originalRequest.headers.Authorization = `Bearer ${tokenResponse.accessToken}`;
+          return this.client(originalRequest);
+        } catch (refreshError) {
+          this.drainQueue(refreshError, null);
+
+          const { useAuthStore } = await import('../stores/authStore');
+          useAuthStore.getState().logout(false);
+
+          return Promise.reject(refreshError);
+        } finally {
+          this.isRefreshing = false;
+        }
       }
     );
   }
 
-  /**
-   * Load token from localStorage
-   */
-  private loadToken(): void {
-    const token = localStorage.getItem(AUTH_CONFIG.TOKEN_KEY);
-    if (token) {
-      this.token = token;
-    }
+  private drainQueue(error: unknown, token: string | null): void {
+    this.pendingQueue.forEach(({ resolve, reject }) => {
+      if (error) {
+        reject(error);
+      } else if (token) {
+        resolve(token);
+      }
+    });
+    this.pendingQueue = [];
   }
 
   /**
    * Set authentication token
    */
   setToken(token: string): void {
-    this.token = token;
-    localStorage.setItem(AUTH_CONFIG.TOKEN_KEY, token);
+    localStorage.setItem(AUTH_TOKEN_KEY, token);
   }
 
   /**
    * Get current token
    */
   getToken(): string | null {
-    return this.token;
+    return localStorage.getItem(AUTH_TOKEN_KEY);
   }
 
   /**
    * Clear authentication token
    */
   clearToken(): void {
-    this.token = null;
-    localStorage.removeItem(AUTH_CONFIG.TOKEN_KEY);
+    localStorage.removeItem(AUTH_TOKEN_KEY);
   }
 
   /**
@@ -112,21 +165,7 @@ class HttpClient {
   clearAuth(): void {
     this.clearToken();
     localStorage.removeItem(AUTH_CONFIG.USER_KEY);
-    localStorage.removeItem(AUTH_CONFIG.REFRESH_TOKEN_KEY);
-  }
-
-  /**
-   * Refresh authentication token
-   */
-  private async refreshToken(): Promise<void> {
-    const refreshToken = localStorage.getItem(AUTH_CONFIG.REFRESH_TOKEN_KEY);
-    if (!refreshToken) {
-      throw new Error('No refresh token available');
-    }
-
-    const response = await this.client.post('/auth/refresh', { refreshToken });
-    const { accessToken } = response.data;
-    this.setToken(accessToken);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
   }
 
   /**
@@ -167,8 +206,8 @@ class HttpClient {
   /**
    * POST request
    */
-  async post<T>(url: string, data?: unknown): Promise<T> {
-    const response = await this.client.post<T>(url, data);
+  async post<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.client.post<T>(url, data, config);
     return response.data;
   }
 
