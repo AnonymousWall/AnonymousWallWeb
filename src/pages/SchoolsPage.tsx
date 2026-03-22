@@ -71,7 +71,7 @@ export const SchoolsPage: React.FC = () => {
   };
 
   const handleAddSchool = async () => {
-    // Validate inputs
+    // Validate required fields
     if (!newDomain.trim() || !newSchoolName.trim()) {
       setFormError('Both domain and school name are required');
       return;
