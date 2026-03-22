@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from './stores/authStore';
+import { authService } from './api/authService';
 import { Layout } from './layouts/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { LoginPage } from './pages/LoginPage';
@@ -21,7 +22,7 @@ import { MarketplacesPage } from './pages/MarketplacesPage';
 import { MarketplaceDetailPage } from './pages/MarketplaceDetailPage';
 import { ConversationsPage } from './pages/ConversationsPage';
 import { ConversationDetailPage } from './pages/ConversationDetailPage';
-import { ROUTES } from './config/constants';
+import { ROUTES, REFRESH_TOKEN_KEY } from './config/constants';
 
 // Create QueryClient instance
 const queryClient = new QueryClient({
@@ -47,11 +48,37 @@ const theme = createTheme({
 
 function App() {
   const loadUser = useAuthStore((state) => state.loadUser);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   // Load user on app initialization
   useEffect(() => {
-    loadUser();
+    void loadUser();
   }, [loadUser]);
+
+  // Proactive token refresh — every 13 min to stay ahead of 15 min expiry.
+  // Prevents silent logout when the admin leaves a tab idle.
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const interval = setInterval(
+      async () => {
+        const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+        if (!refreshToken) return;
+        try {
+          const response = await authService.refreshToken(refreshToken);
+          const updatedRefreshToken = response.refreshToken ?? refreshToken;
+          localStorage.setItem(REFRESH_TOKEN_KEY, updatedRefreshToken);
+          useAuthStore.getState().setAccessToken(response.accessToken);
+        } catch {
+          // Silent failure — the reactive 401 interceptor in httpClient will
+          // handle the next API call if the token has already expired.
+        }
+      },
+      1 * 60 * 1000
+    );
+
+    return () => clearInterval(interval);
+  }, [isAuthenticated]);
 
   return (
     <QueryClientProvider client={queryClient}>

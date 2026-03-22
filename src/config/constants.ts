@@ -18,6 +18,9 @@ export const AUTH_CONFIG = {
   TOKEN_EXPIRY_BUFFER: 5 * 60 * 1000, // 5 minutes before expiry
 } as const;
 
+export const AUTH_TOKEN_KEY = AUTH_CONFIG.TOKEN_KEY;
+export const REFRESH_TOKEN_KEY = AUTH_CONFIG.REFRESH_TOKEN_KEY;
+
 // Pagination Configuration
 export const PAGINATION_CONFIG = {
   DEFAULT_PAGE_SIZE: 20,

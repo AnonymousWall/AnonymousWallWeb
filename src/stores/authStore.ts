@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { authService } from '../api/authService';
-import { httpClient } from '../api/httpClient';
-import { AUTH_CONFIG } from '../config/constants';
+import { AUTH_CONFIG, AUTH_TOKEN_KEY, REFRESH_TOKEN_KEY } from '../config/constants';
 import type { User, LoginRequest } from '../types';
+import { decodeJwtPayload, isUsableTokenValue } from '../utils/authTokenUtils';
 
 /**
  * Auth Store
@@ -10,6 +10,7 @@ import type { User, LoginRequest } from '../types';
  */
 
 interface AuthState {
+  token: string | null;
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -17,13 +18,25 @@ interface AuthState {
 
   // Actions
   login: (credentials: LoginRequest) => Promise<void>;
-  logout: () => void;
-  loadUser: () => void;
+  logout: (revokeServerToken?: boolean) => void;
+  loadUser: () => Promise<void>;
+  setAccessToken: (token: string) => void;
   setError: (error: string | null) => void;
   clearError: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+const isExpiredAccessToken = (token: string): boolean => {
+  const payload = decodeJwtPayload(token);
+  return typeof payload?.exp === 'number' && payload.exp * 1000 < Date.now();
+};
+
+let hydrationRefreshPromise: Promise<{
+  accessToken: string;
+  refreshToken?: string;
+}> | null = null;
+
+export const useAuthStore = create<AuthState>((set, get) => ({
+  token: null,
   user: null,
   isAuthenticated: false,
   isLoading: true,
@@ -38,13 +51,12 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       const response = await authService.login(credentials);
 
-      // Save token and user
-      // Note: Authorization is handled by the backend via JWT token validation
-      // The backend will reject unauthorized requests with 401/403 status codes
-      httpClient.setToken(response.accessToken);
+      localStorage.setItem(AUTH_TOKEN_KEY, response.accessToken);
+      localStorage.setItem(REFRESH_TOKEN_KEY, response.refreshToken);
       localStorage.setItem(AUTH_CONFIG.USER_KEY, JSON.stringify(response.user));
 
       set({
+        token: response.accessToken,
         user: response.user,
         isAuthenticated: true,
         isLoading: false,
@@ -53,6 +65,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Login failed';
       set({
+        token: null,
         user: null,
         isAuthenticated: false,
         isLoading: false,
@@ -65,10 +78,21 @@ export const useAuthStore = create<AuthState>((set) => ({
   /**
    * Logout user
    */
-  logout: () => {
-    authService.logout();
+  logout: (revokeServerToken = true) => {
+    const token = get().token;
+
+    if (revokeServerToken && token) {
+      void authService.logout(token).catch((error) => {
+        console.error('Failed to revoke refresh tokens during logout:', error);
+        // Intentionally swallowed — local logout proceeds regardless
+      });
+    }
+
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
     localStorage.removeItem(AUTH_CONFIG.USER_KEY);
     set({
+      token: null,
       user: null,
       isAuthenticated: false,
       isLoading: false,
@@ -79,27 +103,90 @@ export const useAuthStore = create<AuthState>((set) => ({
   /**
    * Load user from localStorage
    */
-  loadUser: () => {
+  loadUser: async () => {
     try {
-      const token = httpClient.getToken();
+      const token = localStorage.getItem(AUTH_TOKEN_KEY);
+      const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
       const storedUser = localStorage.getItem(AUTH_CONFIG.USER_KEY);
 
-      if (token && storedUser) {
+      if (isUsableTokenValue(token) && isUsableTokenValue(refreshToken) && storedUser) {
         const user = JSON.parse(storedUser) as User;
+
+        if (isExpiredAccessToken(token)) {
+          set({ isLoading: true });
+
+          try {
+            hydrationRefreshPromise ??= authService.refreshToken(refreshToken).finally(() => {
+              hydrationRefreshPromise = null;
+            });
+
+            const refreshedTokens = await hydrationRefreshPromise;
+            const nextRefreshToken = isUsableTokenValue(refreshedTokens.refreshToken)
+              ? refreshedTokens.refreshToken
+              : refreshToken;
+
+            localStorage.setItem(AUTH_TOKEN_KEY, refreshedTokens.accessToken);
+            localStorage.setItem(REFRESH_TOKEN_KEY, nextRefreshToken);
+
+            set({
+              token: refreshedTokens.accessToken,
+              user,
+              isAuthenticated: true,
+              isLoading: false,
+            });
+            return;
+          } catch (error) {
+            console.error('Failed to refresh expired token during auth hydration:', error);
+            localStorage.removeItem(AUTH_TOKEN_KEY);
+            localStorage.removeItem(REFRESH_TOKEN_KEY);
+            localStorage.removeItem(AUTH_CONFIG.USER_KEY);
+            set({
+              token: null,
+              user: null,
+              isAuthenticated: false,
+              isLoading: false,
+            });
+            return;
+          }
+        }
+
         set({
+          token,
           user,
           isAuthenticated: true,
           isLoading: false,
         });
       } else {
-        set({ isLoading: false });
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+        localStorage.removeItem(REFRESH_TOKEN_KEY);
+        localStorage.removeItem(AUTH_CONFIG.USER_KEY);
+        set({
+          token: null,
+          user: null,
+          isAuthenticated: false,
+          isLoading: false,
+        });
       }
     } catch (error) {
       console.error('Failed to load user:', error);
-      httpClient.clearAuth();
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+      localStorage.removeItem(REFRESH_TOKEN_KEY);
       localStorage.removeItem(AUTH_CONFIG.USER_KEY);
-      set({ isLoading: false });
+      set({
+        token: null,
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+      });
     }
+  },
+
+  /**
+   * Update access token after silent refresh
+   */
+  setAccessToken: (token: string) => {
+    localStorage.setItem(AUTH_TOKEN_KEY, token);
+    set({ token });
   },
 
   /**
