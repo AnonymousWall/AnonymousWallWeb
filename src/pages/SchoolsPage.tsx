@@ -71,16 +71,9 @@ export const SchoolsPage: React.FC = () => {
   };
 
   const handleAddSchool = async () => {
-    // Validate inputs
+    // Validate required fields
     if (!newDomain.trim() || !newSchoolName.trim()) {
       setFormError('Both domain and school name are required');
-      return;
-    }
-
-    // Basic domain validation
-    const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]?\.[a-zA-Z]{2,}$/;
-    if (!domainRegex.test(newDomain.trim())) {
-      setFormError('Please enter a valid domain (e.g., example.edu)');
       return;
     }
 
